@@ -138,7 +138,7 @@ export default function LeaveTypeMaster() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredLeaveTypes.map((leaveType) => (
-          <Card key={leaveType.id} className="hrms-card overflow-hidden hover:shadow-md transition-shadow">
+          <Card key={leaveType.id} className="ems-card overflow-hidden hover:shadow-md transition-shadow">
             <div className="h-2" style={{ backgroundColor: leaveType.color }} />
             <CardContent className="p-4">
               <div className="flex items-start justify-between">

@@ -120,7 +120,7 @@ export default function AttendanceReport() {
       </div>
 
       {/* Filters */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardContent className="p-4">
           <div className="flex flex-wrap gap-4">
             <div className="flex items-center gap-2">
@@ -178,7 +178,7 @@ export default function AttendanceReport() {
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Daily Attendance Chart */}
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-display flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-primary" />
@@ -210,7 +210,7 @@ export default function AttendanceReport() {
         </Card>
 
         {/* Department-wise Attendance */}
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-display flex items-center gap-2">
               <Users className="h-5 w-5 text-primary" />
@@ -249,7 +249,7 @@ export default function AttendanceReport() {
         </Card>
 
         {/* Monthly Trend */}
-        <Card className="hrms-card lg:col-span-2">
+        <Card className="ems-card lg:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-display flex items-center gap-2">
               <Clock className="h-5 w-5 text-primary" />
@@ -286,7 +286,7 @@ export default function AttendanceReport() {
       </div>
 
       {/* Attendance Table */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-display">Detailed Attendance Records</CardTitle>
         </CardHeader>

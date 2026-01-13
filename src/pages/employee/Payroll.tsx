@@ -138,7 +138,7 @@ export default function Payroll() {
       </div>
 
       {/* Current Month Payslip */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
             <CardTitle className="text-lg font-display flex items-center gap-2">
@@ -236,7 +236,7 @@ export default function Payroll() {
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Payslip History */}
-        <Card className="hrms-card lg:col-span-2">
+        <Card className="ems-card lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-lg font-display flex items-center gap-2">
               <FileText className="h-5 w-5 text-primary" />
@@ -318,7 +318,7 @@ export default function Payroll() {
         </Card>
 
         {/* Bank Details */}
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardHeader>
             <CardTitle className="text-lg font-display flex items-center gap-2">
               <Building2 className="h-5 w-5 text-primary" />

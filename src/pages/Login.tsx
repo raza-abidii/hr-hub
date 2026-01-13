@@ -72,7 +72,7 @@ export default function Login() {
             <LogIn className="w-8 h-8 text-primary-foreground" />
           </div>
           <h1 className="text-3xl font-display font-bold text-foreground">
-            SFON HRMS
+            SFON EMS
           </h1>
           <p className="text-muted-foreground mt-2">
             Sign in to access your account
@@ -80,7 +80,7 @@ export default function Login() {
         </div>
 
         {/* Login Card */}
-        <div className="hrms-card p-8">
+        <div className="ems-card p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="email">Email or Phone</Label>
@@ -90,7 +90,7 @@ export default function Login() {
                 placeholder="Enter email or phone"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="hrms-input"
+                className="ems-input"
                 autoComplete="email"
               />
             </div>
@@ -112,7 +112,7 @@ export default function Login() {
                   placeholder="Enter password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="hrms-input pr-10"
+                  className="ems-input pr-10"
                   autoComplete="current-password"
                 />
                 <button

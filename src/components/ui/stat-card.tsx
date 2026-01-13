@@ -48,7 +48,7 @@ export function StatCard({
 
   return (
     <div className={cn(
-      "hrms-card p-5 flex items-start justify-between gap-4",
+      "ems-card p-5 flex items-start justify-between gap-4",
       className
     )}>
       <div className="space-y-1.5">

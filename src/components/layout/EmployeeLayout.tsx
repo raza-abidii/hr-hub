@@ -47,7 +47,7 @@ export function EmployeeLayout() {
           <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
             <span className="text-xs font-bold text-primary-foreground">SF</span>
           </div>
-          <span className="font-display font-bold text-lg">SFON HRMS</span>
+          <span className="font-display font-bold text-lg">SFON EMS</span>
         </div>
 
         <div className="flex items-center gap-2">

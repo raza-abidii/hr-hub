@@ -135,7 +135,7 @@ export default function PayrollMaster() {
   };
 
   const ComponentCard = ({ component }: { component: PayrollComponent }) => (
-    <Card className="hrms-card hover:shadow-md transition-shadow">
+    <Card className="ems-card hover:shadow-md transition-shadow">
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="space-y-2">

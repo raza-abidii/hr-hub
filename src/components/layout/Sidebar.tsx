@@ -197,7 +197,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               </div>
               <div>
                 <h2 className="font-display font-bold text-lg text-sidebar-foreground">
-                  SFON HRMS
+                  SFON EMS
                 </h2>
                 <p className="text-xs text-muted-foreground capitalize">
                   {user?.role} Portal

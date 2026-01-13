@@ -341,7 +341,7 @@ export default function EmployeeDashboard() {
       {/* Attendance Statistics - Only show when clocked in */}
       {clockedIn && (
         <div className="grid grid-cols-3 gap-3 pt-2">
-          <Card className="hrms-card">
+          <Card className="ems-card">
             <CardContent className="p-4 text-center">
               <Clock className="h-5 w-5 text-primary mx-auto mb-2" />
               <p className="text-2xl font-bold">{formatTimeShort(workingTime)}</p>
@@ -349,7 +349,7 @@ export default function EmployeeDashboard() {
             </CardContent>
           </Card>
           
-          <Card className="hrms-card">
+          <Card className="ems-card">
             <CardContent className="p-4 text-center">
               <Coffee className="h-5 w-5 text-warning mx-auto mb-2" />
               <p className="text-2xl font-bold">{formatTimeShort(allBreakTime)}</p>
@@ -357,7 +357,7 @@ export default function EmployeeDashboard() {
             </CardContent>
           </Card>
           
-          <Card className="hrms-card">
+          <Card className="ems-card">
             <CardContent className="p-4 text-center">
               <TrendingUp className="h-5 w-5 text-success mx-auto mb-2" />
               <p className="text-2xl font-bold">8.5h</p>
@@ -370,7 +370,7 @@ export default function EmployeeDashboard() {
       {/* Attendance Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Weekly Attendance */}
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-display flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-primary" />
@@ -404,7 +404,7 @@ export default function EmployeeDashboard() {
         </Card>
 
         {/* Monthly Attendance */}
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-display flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-primary" />
@@ -442,7 +442,7 @@ export default function EmployeeDashboard() {
       </div>
 
       {/* Recent Activity */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardHeader className="pb-3">
           <CardTitle className="text-base font-display flex items-center gap-2">
             <FileText className="h-4 w-4 text-primary" />

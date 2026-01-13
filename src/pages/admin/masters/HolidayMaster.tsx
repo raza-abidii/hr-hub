@@ -168,7 +168,7 @@ export default function HolidayMaster() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredHolidays.map((holiday) => (
-          <Card key={holiday.id} className="hrms-card hover:shadow-md transition-shadow">
+          <Card key={holiday.id} className="ems-card hover:shadow-md transition-shadow">
             <CardContent className="p-4">
               <div className="flex items-start justify-between">
                 <div className="space-y-2">

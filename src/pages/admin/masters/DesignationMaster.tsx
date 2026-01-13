@@ -133,7 +133,7 @@ export default function DesignationMaster() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredDesignations.map((designation) => (
-          <Card key={designation.id} className="hrms-card overflow-hidden">
+          <Card key={designation.id} className="ems-card overflow-hidden">
             <div className="h-2 bg-gradient-to-r from-primary to-primary/60" />
             <CardContent className="p-4">
               <div className="flex items-start justify-between">

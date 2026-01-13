@@ -171,7 +171,7 @@ export default function CompanyMaster() {
 
       <div className="grid grid-cols-1 gap-4">
         {filteredCompanies.map((company) => (
-          <Card key={company.id} className="hrms-card hover:shadow-md transition-shadow">
+          <Card key={company.id} className="ems-card hover:shadow-md transition-shadow">
             <CardContent className="p-6">
               <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
                 <div className="flex items-start gap-4">

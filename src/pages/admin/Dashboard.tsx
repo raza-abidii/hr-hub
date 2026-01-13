@@ -174,7 +174,7 @@ export default function AdminDashboard() {
 
       {/* Minimalist Clock-In Card */}
       <Card className={cn(
-        "hrms-card overflow-hidden transition-all",
+        "ems-card overflow-hidden transition-all",
         clockedIn && !onBreak && "border-primary/50",
         onBreak && "border-warning/50"
       )}>
@@ -310,7 +310,7 @@ export default function AdminDashboard() {
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Today's Attendance Distribution - Pie Chart */}
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-display flex items-center gap-2">
               <PieChart className="h-5 w-5 text-primary" />
@@ -356,7 +356,7 @@ export default function AdminDashboard() {
         </Card>
 
         {/* Weekly Attendance Distribution - Bar Chart */}
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-display flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-primary" />
@@ -405,7 +405,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Monthly Attendance Trend */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-display flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-primary" />
@@ -445,7 +445,7 @@ export default function AdminDashboard() {
       {/* Two Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Pending Leave Requests */}
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-display flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
@@ -476,7 +476,7 @@ export default function AdminDashboard() {
         </Card>
 
         {/* Today's Attendance */}
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-display flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-primary" />
@@ -515,7 +515,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-display flex items-center gap-2">
             <AlertCircle className="h-5 w-5 text-primary" />

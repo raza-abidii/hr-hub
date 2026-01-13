@@ -170,7 +170,7 @@ export default function ShiftMaster() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredShifts.map((shift) => (
-          <Card key={shift.id} className="hrms-card hover:shadow-md transition-shadow">
+          <Card key={shift.id} className="ems-card hover:shadow-md transition-shadow">
             <CardContent className="p-4">
               <div className="flex items-start justify-between">
                 <div className="space-y-3">

@@ -181,7 +181,7 @@ export default function Profile() {
       />
 
       {/* Profile Header Card */}
-      <Card className="hrms-card overflow-hidden">
+      <Card className="ems-card overflow-hidden">
         <div className="h-24 gradient-primary" />
         <CardContent className="relative pt-0">
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 -mt-12">
@@ -227,7 +227,7 @@ export default function Profile() {
 
         {/* Personal Information Tab */}
         <TabsContent value="personal">
-          <Card className="hrms-card">
+          <Card className="ems-card">
             <CardHeader>
               <CardTitle className="text-lg font-display flex items-center gap-2">
                 <User className="h-5 w-5 text-primary" />
@@ -265,7 +265,7 @@ export default function Profile() {
 
         {/* Employment Tab */}
         <TabsContent value="employment">
-          <Card className="hrms-card">
+          <Card className="ems-card">
             <CardHeader>
               <CardTitle className="text-lg font-display flex items-center gap-2">
                 <Briefcase className="h-5 w-5 text-primary" />
@@ -294,7 +294,7 @@ export default function Profile() {
 
         {/* Emergency Contact Tab */}
         <TabsContent value="emergency">
-          <Card className="hrms-card">
+          <Card className="ems-card">
             <CardHeader>
               <CardTitle className="text-lg font-display flex items-center gap-2">
                 <Phone className="h-5 w-5 text-primary" />
@@ -323,7 +323,7 @@ export default function Profile() {
 
         {/* Bank Details Tab */}
         <TabsContent value="bank">
-          <Card className="hrms-card">
+          <Card className="ems-card">
             <CardHeader>
               <CardTitle className="text-lg font-display flex items-center gap-2">
                 <Building2 className="h-5 w-5 text-primary" />
@@ -355,7 +355,7 @@ export default function Profile() {
 
         {/* Documents Tab */}
         <TabsContent value="documents">
-          <Card className="hrms-card">
+          <Card className="ems-card">
             <CardHeader>
               <CardTitle className="text-lg font-display flex items-center gap-2">
                 <FileText className="h-5 w-5 text-primary" />
@@ -409,7 +409,7 @@ export default function Profile() {
         <TabsContent value="settings">
           <div className="space-y-6">
             {/* Password Section */}
-            <Card className="hrms-card">
+            <Card className="ems-card">
               <CardHeader>
                 <CardTitle className="text-lg font-display flex items-center gap-2">
                   <Lock className="h-5 w-5 text-primary" />
@@ -477,7 +477,7 @@ export default function Profile() {
             </Card>
 
             {/* Notification Preferences */}
-            <Card className="hrms-card">
+            <Card className="ems-card">
               <CardHeader>
                 <CardTitle className="text-lg font-display flex items-center gap-2">
                   <Bell className="h-5 w-5 text-primary" />
@@ -507,7 +507,7 @@ export default function Profile() {
             </Card>
 
             {/* Privacy Settings */}
-            <Card className="hrms-card">
+            <Card className="ems-card">
               <CardHeader>
                 <CardTitle className="text-lg font-display flex items-center gap-2">
                   <Settings className="h-5 w-5 text-primary" />

@@ -182,7 +182,7 @@ export default function AddEmployee() {
       />
 
       {/* Profile Picture */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardContent className="p-6">
           <div className="flex items-center gap-6">
             <Avatar className="h-24 w-24 border-4 border-primary/20">
@@ -204,7 +204,7 @@ export default function AddEmployee() {
       </Card>
 
       {/* Personal Information */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardHeader>
           <CardTitle className="text-lg font-display flex items-center gap-2">
             <User className="h-5 w-5 text-primary" />
@@ -345,7 +345,7 @@ export default function AddEmployee() {
       </Card>
 
       {/* Employment Information */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardHeader>
           <CardTitle className="text-lg font-display flex items-center gap-2">
             <Briefcase className="h-5 w-5 text-primary" />
@@ -505,7 +505,7 @@ export default function AddEmployee() {
       </Card>
 
       {/* Compensation */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardHeader>
           <CardTitle className="text-lg font-display flex items-center gap-2">
             <CreditCard className="h-5 w-5 text-primary" />
@@ -535,7 +535,7 @@ export default function AddEmployee() {
       </Card>
 
       {/* Emergency Contact */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardHeader>
           <CardTitle className="text-lg font-display flex items-center gap-2">
             <Phone className="h-5 w-5 text-primary" />
@@ -579,7 +579,7 @@ export default function AddEmployee() {
       </Card>
 
       {/* Bank & Documents */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardHeader>
           <CardTitle className="text-lg font-display flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />

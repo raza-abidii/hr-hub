@@ -160,7 +160,7 @@ export default function EmployeeMaster() {
       </div>
 
       {/* Filters */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
@@ -204,7 +204,7 @@ export default function EmployeeMaster() {
       </Card>
 
       {/* Employee List */}
-      <Card className="hrms-card overflow-hidden">
+      <Card className="ems-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>

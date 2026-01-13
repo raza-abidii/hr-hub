@@ -105,7 +105,7 @@ export default function LeaveReport() {
       </div>
 
       {/* Filters */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardContent className="p-4">
           <div className="flex flex-wrap gap-4">
             <Select value={department} onValueChange={setDepartment}>
@@ -137,7 +137,7 @@ export default function LeaveReport() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-display flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-primary" />
@@ -169,7 +169,7 @@ export default function LeaveReport() {
           </CardContent>
         </Card>
 
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-display flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
@@ -196,7 +196,7 @@ export default function LeaveReport() {
       </div>
 
       {/* Leave Balance Table */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-display">Leave Balance Summary</CardTitle>
         </CardHeader>

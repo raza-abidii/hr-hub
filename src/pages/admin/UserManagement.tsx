@@ -184,7 +184,7 @@ export default function UserManagement() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
@@ -197,7 +197,7 @@ export default function UserManagement() {
             </div>
           </CardContent>
         </Card>
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
@@ -210,7 +210,7 @@ export default function UserManagement() {
             </div>
           </CardContent>
         </Card>
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -223,7 +223,7 @@ export default function UserManagement() {
             </div>
           </CardContent>
         </Card>
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
@@ -239,7 +239,7 @@ export default function UserManagement() {
       </div>
 
       {/* Filters */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
@@ -269,7 +269,7 @@ export default function UserManagement() {
       </Card>
 
       {/* Users Table */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardContent className="p-0">
           <Table>
             <TableHeader>

@@ -193,7 +193,7 @@ export default function Notifications() {
 
         <TabsContent value={activeTab} className="mt-6">
           {filteredNotifications.length > 0 ? (
-            <Card className="hrms-card">
+            <Card className="ems-card">
               <CardContent className="p-0 divide-y divide-border">
                 {filteredNotifications.map((notification) => {
                   const config = typeConfig[notification.type];

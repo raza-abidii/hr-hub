@@ -318,7 +318,7 @@ export default function LeaveManagement() {
           const percentage = (remaining / leave.total) * 100;
           
           return (
-            <Card key={leave.code} className="hrms-card overflow-hidden">
+            <Card key={leave.code} className="ems-card overflow-hidden">
               <div className={cn("h-1.5", leave.color)} />
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-3">
@@ -359,7 +359,7 @@ export default function LeaveManagement() {
       </div>
 
       {/* Leave History */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardHeader>
           <CardTitle className="text-lg font-display flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />

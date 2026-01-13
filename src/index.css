@@ -45,7 +45,7 @@
 
     --radius: 0.75rem;
 
-    /* Custom HRMS tokens */
+    /* Custom EMS tokens */
     --gradient-primary: linear-gradient(135deg, hsl(174 72% 40%) 0%, hsl(185 70% 45%) 100%);
     --gradient-hero: linear-gradient(135deg, hsl(180 30% 96%) 0%, hsl(185 40% 92%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(174 72% 40%) 0%, hsl(185 70% 50%) 100%);
@@ -171,11 +171,11 @@
     @apply bg-destructive/10 text-destructive;
   }
 
-  .hrms-card {
+  .ems-card {
     @apply bg-card rounded-xl border border-border shadow-card transition-all duration-200 hover:shadow-elevated;
   }
 
-  .hrms-input {
+  .ems-input {
     @apply flex h-11 w-full rounded-lg border border-input bg-background px-4 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200;
   }
 }

@@ -316,7 +316,7 @@ export default function LeaveApproval() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-3 gap-4">
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
               <Clock className="h-5 w-5 text-warning" />
@@ -327,7 +327,7 @@ export default function LeaveApproval() {
             </div>
           </CardContent>
         </Card>
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
               <CheckCircle2 className="h-5 w-5 text-success" />
@@ -338,7 +338,7 @@ export default function LeaveApproval() {
             </div>
           </CardContent>
         </Card>
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
               <XCircle className="h-5 w-5 text-destructive" />

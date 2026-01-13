@@ -112,7 +112,7 @@ export default function EmployeeReport() {
       </div>
 
       {/* Filters */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardContent className="p-4">
           <div className="flex flex-wrap gap-4">
             <Select value={department} onValueChange={setDepartment}>
@@ -144,7 +144,7 @@ export default function EmployeeReport() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-display flex items-center gap-2">
               <Users className="h-5 w-5 text-primary" />
@@ -176,7 +176,7 @@ export default function EmployeeReport() {
           </CardContent>
         </Card>
 
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-display flex items-center gap-2">
               <Building2 className="h-5 w-5 text-primary" />
@@ -198,7 +198,7 @@ export default function EmployeeReport() {
           </CardContent>
         </Card>
 
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-display flex items-center gap-2">
               <Briefcase className="h-5 w-5 text-primary" />
@@ -222,7 +222,7 @@ export default function EmployeeReport() {
       </div>
 
       {/* Employee Table */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-display">Employee Directory</CardTitle>
         </CardHeader>

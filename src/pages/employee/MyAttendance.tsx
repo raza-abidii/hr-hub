@@ -107,7 +107,7 @@ export default function MyAttendance() {
       </div>
 
       {/* Attendance Records */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardContent className="p-0">
           <div className="divide-y divide-border">
             {mockAttendanceData.map((record, index) => (

@@ -210,7 +210,7 @@ export default function EmployeeDirectory() {
       />
 
       {/* Search & Filters */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-3">
             <div className="relative flex-1">
@@ -263,7 +263,7 @@ export default function EmployeeDirectory() {
         {filteredEmployees.map((employee) => (
           <Card
             key={employee.id}
-            className="hrms-card cursor-pointer hover:border-primary transition-all"
+            className="ems-card cursor-pointer hover:border-primary transition-all"
             onClick={() => openEmployeeDetails(employee)}
           >
             <CardContent className="p-5">

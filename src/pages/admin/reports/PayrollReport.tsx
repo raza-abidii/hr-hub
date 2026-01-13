@@ -117,7 +117,7 @@ export default function PayrollReport() {
       </div>
 
       {/* Filters */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardContent className="p-4">
           <div className="flex flex-wrap gap-4">
             <Select value={month} onValueChange={setMonth}>
@@ -149,7 +149,7 @@ export default function PayrollReport() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-display flex items-center gap-2">
               <Building2 className="h-5 w-5 text-primary" />
@@ -181,7 +181,7 @@ export default function PayrollReport() {
           </CardContent>
         </Card>
 
-        <Card className="hrms-card">
+        <Card className="ems-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-display flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-primary" />
@@ -212,7 +212,7 @@ export default function PayrollReport() {
       </div>
 
       {/* Payroll Table */}
-      <Card className="hrms-card">
+      <Card className="ems-card">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-display">Payroll Summary</CardTitle>
         </CardHeader>
