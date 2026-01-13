@@ -1,0 +1,236 @@
+﻿@model List< EMSSolution.Models.LeaveStatusReport>
+@using Microsoft.AspNetCore.Http
+@{
+    ViewBag.Title = "Employee Leave Status Report";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var employeeid = Context.Session.GetString("EmployeeId");
+}
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/Style.css">
+    <style>
+
+        .status-approved {
+            background-color: #16cc41 !important; /* Light green */
+        }
+
+        .status-pending {
+            background-color: #ffe935 !important; /* Light yellow */
+        }
+
+        .status-rejected {
+            background-color: #f7061c !important; /* Light red */
+        }
+
+    </style>
+
+    <style>
+     
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            table-layout: fixed; /* Needed for resizing to work well */
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        th {
+            position: relative;
+        }
+        .resizer {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 5px;
+            height: 100%;
+            cursor: col-resize;
+            user-select: none;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="container">
+        <h4 class="text-center d-flex justify-content-center align-items-center gap-2">
+            Employee Leave Status Report
+            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="none" viewBox="0 0 64 64">
+                <!-- Document -->
+                <rect x="12" y="8" width="40" height="48" rx="4" ry="4" fill="#e0e7ff" stroke="#3b82f6" stroke-width="2" />
+
+                <!-- Header line -->
+                <rect x="18" y="16" width="28" height="4" rx="2" fill="#3b82f6" />
+
+                <!-- Sub-lines -->
+                <rect x="18" y="24" width="20" height="3" rx="1.5" fill="#60a5fa" />
+                <rect x="18" y="30" width="24" height="3" rx="1.5" fill="#60a5fa" />
+                <rect x="18" y="36" width="18" height="3" rx="1.5" fill="#60a5fa" />
+
+                <!-- Checkmark circle -->
+                <circle cx="48" cy="48" r="10" fill="#10b981" />
+                <path d="M43 48l3 3 6-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+
+                <!-- Calendar hint -->
+                <rect x="42" y="10" width="8" height="6" rx="1" fill="#3b82f6" />
+                <rect x="50" y="10" width="8" height="6" rx="1" fill="#3b82f6" />
+            </svg>
+        </h4>
+        <div class="form-group">
+            <label>Select Employee:</label>
+            <select id="employee" name="employee" class="form-control">
+                <option value="0">-- Select --</option>
+                @foreach (var emp in ViewBag.Employees)
+                {
+                    <option value="@emp.iMasterid">@emp.sEmployeeName</option>
+                }
+            </select>
+        </div>
+
+
+        <div class="form-group">
+            <label for="fromDate">From Date:</label>
+            <input type="date" id="fromDate" name="fromDate" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label for="toDate">To Date:</label>
+            <input type="date" id="toDate" name="toDate" class="form-control" />
+        </div>
+        <div class="flex">
+            <button id="btnDisplay" class="btn btn-primary mt-2" accesskey="d">Display</button>
+        </div>
+    </div>
+    <div class="container">
+
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+            <input type="text" id="searchBox" class="col-4 display: flex margin-right" placeholder="Search..." onkeyup="searchTable()" />
+        </div>
+
+        <div class="table-responsive mt-4">
+            <table class="table table-hover table-bordered" id="myTable" style="table-layout: auto; width: 100%;">
+                <thead>
+                    <tr>
+                        <th>SNo </th>
+                        <th>Employee Name </th>
+                        <th>Employee Code </th>
+                        <th>Leave Date </th>
+                        <th>Leave Type </th>
+                        <th>Reason </th>
+                        <th>Approval Authority </th>
+                        <th>Status </th>
+                        <th>Approved/Rejected By </th>
+                        <th>Approved/Rejected Reason </th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
+
+
+<script>
+    $(document).ready(function () {
+        debugger;
+        $('#employee').select2({
+            placeholder: "Select employee",
+            allowClear: true
+        });
+        var count = $('#employee option').length;
+        if(count==2)
+        {
+             $("#employee").val(@employeeid).trigger('change'); //select default employee
+        }
+        else
+        {
+
+            focusonselectcontrol("#employee");
+            $("#employee").focus();
+        }
+
+        var today = new Date();
+        var formattedDate = today.toISOString().split('T')[0];
+        $('#fromDate').val(formattedDate);
+        $('#toDate').val(formattedDate);
+
+    });
+    $('#btnDisplay').click(function () {
+        debugger;
+        var employeeId = $('#employee').val();
+        var fromDate = $('#fromDate').val();
+        var toDate = $('#toDate').val();
+        // if (employeeId == "0") {
+        //     alert("Please select an employee.");
+        //     return;
+        // }
+        $.ajax({
+            url: '@Url.Action("GetLeaveStatusReport", "LeaveStatusReport")',
+            type: 'POST',
+            data: { empId: employeeId ,
+                    fromDate: fromDate,
+                    toDate: toDate
+            },
+            success: function (response) {
+                debugger;
+                var tbody = $('#myTable tbody');
+                tbody.empty();
+                if(response.success == false) {
+                    alert(response.message);
+                    return;
+                }
+                if (response.data.length > 0) {
+
+                    $.each(response.data, function (index, item) {
+                        let statusClass = "";
+
+                        switch (item.status?.toLowerCase()) {
+                            case "approved":
+                                statusClass = "status-approved";
+                                break;
+                            case "pending":
+                                statusClass = "status-pending";
+                                break;
+                            case "rejected":
+                                statusClass = "status-rejected";
+                                break;
+                        }
+                        tbody.append(`
+
+                            <tr style="font-size:12px">
+                                <td>${index + 1}</td>
+                                <td >${item.employeeName}</td>
+                                <td ">${item.employeeCode}</td>
+                                <td ">${item.leaveDate}</td>
+                                <td ">${item.leaveType}</td>
+                                <td ;font-size:11px">${item.reason}</td>
+                                <td ">${item.approvalAuthority}</td>
+                                <td " class="${statusClass}">${item.status}</td>
+                                <td ">${item.approvedRejectedBy}</td>
+                                <td style="font-size:8px">${item.appRejReason}</td>
+
+                            </tr>
+                        `);
+
+                    });
+
+                } else {
+                    tbody.append('<tr><td colspan="8">No records found.</td></tr>');
+
+                }
+            },
+            error: function () {
+                alert("Error retrieving data.");
+            }
+        });
+    });
+
+</script>

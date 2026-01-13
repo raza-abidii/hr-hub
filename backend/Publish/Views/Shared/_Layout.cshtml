@@ -1,0 +1,1158 @@
+﻿@using Microsoft.AspNetCore.Http
+
+@{
+    var role = Context.Session.GetString("Role");
+    var menurights = string.IsNullOrEmpty(Context.Session.GetString("UserRights")) ? null : Context.Session.GetString("UserRights").Split(',').ToList();
+
+}
+@{
+    //var theme = Context.Session.GetString("AppTheme") ?? "theme-light";
+    var theme = Context.Request.Cookies["AppTheme"] ?? "light";
+}
+@{
+    var isDev = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+    var csspath = isDev ? "" : "/EMSSolution";
+}
+
+@if (Context.Session.GetString("HideSideNav") == "false")
+{
+    @* User Profile Setting *@
+    <div class="dropdown gmail-style-dropdown ms-auto me-3" style="position: absolute; top:4px; right: -31px;">
+        @* <a class="btn dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown"  *@
+        <a class="btn  d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown"
+           aria-expanded="false">
+            <img src="data:image/png;base64,@Context.Session.GetString("sImage")"
+                 class="me-2" alt="User" width="60" height="37" style="margin-top:-10px" />
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end p-3" style="min-width: 300px;">
+            <li class="text-center">
+                <img src="data:image/png;base64,@Context.Session.GetString("sImage")" alt="Profile Picture" class="profile-img mb-2" style="width: 80px; height: 80px; border-radius: 50%;" />
+                <div class="fw-bold">@Context.Session.GetString("UserName")</div>
+                <div class="text-muted small">@Context.Session.GetString("Role")</div>
+            </li>
+            <li class="text-center mt-2">
+                <form asp-action="UpdateProfilePicture" method="post" enctype="multipart/form-data" id="profileForm">
+                    <input type="file" name="profileImage" id="profileImage" class="d-none" accept="image/*" onchange="document.getElementById('profileForm').submit();" />
+                    <label for="profileImage" class="btn btn-sm btn-outline-primary">Edit Profile Picture</label>
+                </form>
+            </li>
+            <li><hr class="dropdown-divider" /></li>
+
+            <!-- 🔐 Change Password Form -->
+            <li>
+                <button class="dropdown-item text-primary" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                    Change Password
+                </button>
+                @* <a class="dropdown-item text-danger" href="~/Account/Logout">
+                    Logout
+                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none">
+                        <path d="M18.36 6.64a9 9 0 1 1-12.73 0" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                        <line x1="12" y1="2" x2="12" y2="12" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </a> *@
+
+                <a class="dropdown-item text-danger d-flex align-items-center gap-2" href="~/Account/Logout" style="padding: 0.5rem 1rem;">
+                    <span style="
+                        width: 40px;
+                        height: 40px;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: 50%;
+                        background-color: #fef2f2; /* Light red background */
+                                                                                        ">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none">
+                            <path d="M18.36 6.64a9 9 0 1 1-12.73 0" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                            <line x1="12" y1="2" x2="12" y2="12" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </span>
+                    Logout
+                </a>
+
+
+                <br />
+                <a>
+                    Theme
+                    <select id="theme-selector" name="theme">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                        <option value="blue">Blue</option>
+                    </select>
+                </a>
+            </li>
+
+
+
+            @* <li >
+                <select id="theme-selector" name="theme">
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="blue">Blue</option>
+                </select>
+            </li> *@
+        </ul>
+    </div>
+
+    @* script for theme *@
+    <script>
+          // Load theme from cookie on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const theme = getCookie("AppTheme") || "light";
+            document.getElementById("theme-css").href = `@csspath/css/theme-${theme}.css`;
+            document.getElementById("theme-selector").value = theme;
+        });
+
+        // When user changes the theme from the dropdown
+        document.getElementById("theme-selector").addEventListener("change", function () {
+            debugger;
+            const selectedTheme = this.value;
+                document.getElementById("theme-css").href = `@csspath/css/theme-${selectedTheme}.css`;
+                setCookie("AppTheme", selectedTheme, 365);
+        });
+
+        // Helper to set cookie
+        function setCookie(name, value, days) {
+            const d = new Date();
+            d.setTime(d.getTime() + (days*24*60*60*1000));
+            document.cookie = `${name}=${value};expires=${d.toUTCString()};path=/`;
+        }
+
+        // Helper to get cookie
+        function getCookie(name) {
+            const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+            return match ? match[2] : null;
+        }
+    </script>
+
+
+    @* Separate Form to change Password *@
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form asp-action="ChangePassword" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="OldPassword" class="form-label">Old Password</label>
+                            <input type="password" name="OldPassword" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label for="NewPassword" class="form-label">New Password</label>
+                            <input type="password" name="NewPassword" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label for="ConfirmPassword" class="form-label">Confirm New Password</label>
+                            <input type="password" name="ConfirmPassword" class="form-control" required />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div aria-live="polite" aria-atomic="true" class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+        <div class="toast align-items-center text-white bg-@TempData["ToastType"] border-0" role="alert" id="toastMessage" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    @TempData["ToastMessage"]
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+}
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>EMS Solution</title>
+    <link rel="icon" type="image/png" href="~/image/sfon1.png" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    @* <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> *@
+
+    <link id="theme-css" rel="stylesheet" href="~/css/theme-light.css" />
+
+    <script src="~/js/GenericFunction.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+
+
+    <style>
+        body {
+            font-family: "Lato", sans-serif;
+            background-color: #cccccc;
+        }
+
+        .sidenav {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            background-color: #849bb0;
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 60px;
+        }
+
+        .sidenav a {
+            padding: 8px 8px 8px 32px;
+            text-decoration: none;
+            font-size: 15px;
+            color: white;
+            display: block;
+            transition: 0.3s;
+        }
+
+        .sidenav a:hover {
+            color: #f1f1f1;
+        }
+
+        .sidenav .closebtn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 20px;
+            margin-left: 50px;
+        }
+
+        .main-content {
+            transition: margin-left 0.5s;
+            margin-left: 0;
+        }
+
+        .sidenav-open .main-content {
+            margin-left: 250px; /* same as sidenav width */
+        }
+
+        .sidenav-group-title {
+            font-weight: bold;
+            padding-left: 32px;
+            padding-top: 10px;
+            padding-bottom: 5px;
+            font-size: 14px;
+            color: #1F2937; /* Dark text */
+            background-color: #d9e3f0; /* Slight background contrast */
+        }
+
+        .sidenav-group a {
+            padding-left: 48px; /* Indented links inside group */
+        }
+
+        .tree-nav {
+            font-family: Arial, sans-serif;
+        }
+
+        .tree-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color:white;
+        }
+
+        .arrow {
+            transition: transform 0.2s ease;
+        }
+
+            .arrow.open {
+                transform: rotate(90deg);
+            }
+
+        .tree-children {
+            margin-left: 28px;
+            display: none;
+        }
+
+        .tree-children.open {
+            display: block;
+        }
+
+        .tree-children a {
+            display: block;
+            margin: 4px 0;
+            text-decoration: none;
+            color: white;
+        }
+
+        .sidenav ul {
+            list-style: none;
+            padding-left: 1rem;
+        }
+
+        .sidenav li {
+            margin: 4px 0;
+        }
+
+        
+    </style>
+
+</head>
+
+<body>
+    @if (!(ViewData["HideTopStrip"] as bool? ?? false))
+    {
+        <div class="top-strip bg-light d-flex justify-content-between align-items-center px-3 py-2 shadow-sm"
+             style="position: absolute; top:0px; right: 66px;font-size: 0.9rem;background-color:rgb(100, 98, 98) !important;margin-top:0px;height:39px;width:1120px">
+            <!-- Center: Date -->
+       
+            <div>
+
+                @if (Context.Session.GetString("IsAuthenticated") == "true")
+                {
+                    
+                    <img src="@ViewBag.CompanyLogo" 
+                        alt="@ViewBag.CompanyName" 
+                        style="height: auto; max-height: 39px; margin-top: -3px;">
+                   
+                    <span style="margin-top: 25px;color:white">@ViewBag.CompanyName</span>
+                   
+                    <span style="color:white;margin-left:416px">Welcome, @Context.Session.GetString("UserName")</span>
+                    <span id="currentDateTime" style="color:white;margin-left:152px"></span>
+                   @*  <div>
+                        <span id="currentDateTime" style="color:white;margin-right:200px"></span>
+                    </div> *@
+                }
+                else
+                {
+                    <a href="/Account/Login" class="text-dark text-decoration-none"><i class="bi bi-box-arrow-in-right"></i> Login</a>
+                }
+            </div>
+            
+
+        </div>
+    }
+
+
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none">
+        <symbol id="icon-save" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M7 0a1 1 0 0 1 1 1v6h4V1a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h2V1a1 1 0 0 1 1-1h2z" />
+        </symbol>
+
+        <symbol id="icon-refresh" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M11.534 7h1.932a.5.5 0 0 1 .354.854l-2.5 2.5a.5.5 0 0 1-.707 0l-2.5-2.5A.5.5 0 0 1 8.5 7h1.932a3.5 3.5 0 1 0-3.313 4.668.5.5 0 0 1 .674.738A4.5 4.5 0 1 1 11.534 7z" />
+        </symbol>
+        <symbol id="icon-delete" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M5.5 5.5A.5.5 0 0 1 6 5h4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0V6H6v6.5a.5.5 0 0 1-1 0v-7z" />
+            <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1 0-2h3.086a1 1 0 0 1 .707.293l.707.707h3.586l.707-.707A1 1 0 0 1 10.914 1H14.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118z" />
+        </symbol>
+    </svg>
+
+
+    <div id="mainWrapper" >
+ 
+        @if (ViewBag.HideSideNav == true) //make conditional menu item display
+        {
+          
+        }
+        else
+        {
+            <div id="mySidenav" class="sidenav">
+                <div style="padding: 0 16px 10px 16px;">
+                    @* <input type="text" id="sidenavSearch" placeholder="Search..." onkeyup="filterSidenav()"> *@
+                    <input type="text" id="sidenavSearch" placeholder="Search..." oninput="filterSidenav()">
+                </div>
+
+                <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+
+                @if (menurights == null || menurights.Contains("Home") || role == "Admin")
+                {
+                    <div class="tree-nav">
+                        <a name="Home" href="~/Home/Index" style="font-size:14px">
+                            <svg width="25" height="25" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M32 8L8 28H16V56H48V28H56L32 8Z" fill="#FFD166" stroke="#073B4C" stroke-width="2" />
+                                <rect x="26" y="36" width="12" height="20" fill="#06D6A0" stroke="#073B4C" stroke-width="2" />
+                            </svg>
+
+                            Home
+                        </a>
+                    </div>
+                }
+
+
+                @if (menurights == null || menurights.Any(a => "Company,Department,Designation,Category,Shift,MachineMap,Holiday,Leave,Employee".Contains(a))
+               || role == "Admin")
+                {
+                    <div class="tree-nav">
+                        <div class="tree-item">
+                            <button class="tree-toggle" aria-expanded="false" style="font-size:14px">
+                                <span class="arrow">▶</span>
+                                <svg width="25" height="25" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                                    <!-- Database (cylinder) -->
+                                    <ellipse cx="32" cy="14" rx="20" ry="6" fill="#4A90E2" />
+                                    <path d="M12 14V38C12 42 21 46 32 46C43 46 52 42 52 38V14" fill="#4A90E2" />
+                                    <ellipse cx="32" cy="38" rx="20" ry="6" fill="#4A90E2" />
+
+                                    <!-- Gear for "master" configuration -->
+                                    <g transform="translate(40, 40)">
+                                        <circle r="5" fill="#fff" stroke="#000" stroke-width="1.5" />
+                                        <path d="M0,-8 L0,-11 M0,8 L0,11 M-8,0 L-11,0 M8,0 L11,0 M-5.5,-5.5 L-7.5,-7.5 M5.5,-5.5 L7.5,-7.5 M-5.5,5.5 L-7.5,7.5 M5.5,5.5 L7.5,7.5" stroke="#000" stroke-width="1.5" />
+                                    </g>
+                                </svg>
+
+
+                                Masters
+                            </button>
+
+                            @if (menurights == null || menurights.Contains("Company") || role == "Admin")
+                            {
+                                <div class="tree-children">
+                                    <a name="Department" href="~/Home/CompanyDetail" style="font-size:14px">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#0d6efd" viewBox="0 0 24 24">
+                                          <path d="M3 22v-2h2v-7h4v7h2v-4h4v4h2v-9h4v11h-6v-4h-4v4H3zm14-10V4H7v8H3L12 2l9 10h-5z"/>
+                                        </svg>
+
+                                        Company Master
+                                    </a>
+                                </div>
+                            }
+
+
+                            @if (menurights == null || menurights.Contains("Department") || role == "Admin")
+                            {
+                                <div class="tree-children">
+                                    <a name="Department" href="~/Department/DepartmentPage" style="font-size:14px">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="30" height="30">
+                                            <!-- Building Structure -->
+                                            <rect x="10" y="20" width="25" height="25" fill="#4CAF50" stroke="#388E3C" stroke-width="2" />
+
+                                            <!-- Windows -->
+                                            <rect x="14" y="24" width="8" height="8" fill="#ffffff" stroke="#388E3C" stroke-width="1" />
+                                            <rect x="14" y="34" width="8" height="8" fill="#ffffff" stroke="#388E3C" stroke-width="1" />
+
+                                            <rect x="22" y="24" width="8" height="8" fill="#ffffff" stroke="#388E3C" stroke-width="1" />
+                                            <rect x="22" y="34" width="8" height="8" fill="#ffffff" stroke="#388E3C" stroke-width="1" />
+
+                                            <rect x="30" y="24" width="8" height="8" fill="#ffffff" stroke="#388E3C" stroke-width="1" />
+                                            <rect x="30" y="34" width="8" height="8" fill="#ffffff" stroke="#388E3C" stroke-width="1" />
+
+                                            <rect x="38" y="24" width="8" height="8" fill="#ffffff" stroke="#388E3C" stroke-width="1" />
+                                            <rect x="38" y="34" width="8" height="8" fill="#ffffff" stroke="#388E3C" stroke-width="1" />
+
+                                            <!-- Roof -->
+                                            <polygon points="10,20 54,20 32,8" fill="#1976D2" />
+                                        </svg>
+                                        Department Master
+                                    </a>
+                                </div>
+                            }
+
+
+                            @if (menurights == null || menurights.Contains("Designation") || role == "Admin")
+                            {
+                                <div class="tree-children">
+                                    <a name="Designation" href="~/Designation/DesignationPage" style="font-size:14px">
+                                        <svg width="25" height="25" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                                            <rect width="512" height="512" fill="#f0f0f0" />
+                                            <rect x="16" y="16" width="480" height="480" rx="30" fill="#e0e0e0" stroke="#333" stroke-width="12" />
+                                            <rect x="32" y="32" width="448" height="60" rx="10" fill="#3b83f6" />
+                                            <circle cx="104" cy="180" r="50" fill="#ffc107" stroke="#333" stroke-width="8" />
+                                            <circle cx="104" cy="180" r="20" fill="#fff" />
+                                            <line x1="150" y1="180" x2="240" y2="180" stroke="#333" stroke-width="12" />
+
+                                            <!-- Vertical boxes (right) -->
+                                            <rect x="240" y="150" width="80" height="40" rx="8" fill="#ffc107" stroke="#333" stroke-width="8" />
+                                            <rect x="240" y="210" width="80" height="40" rx="8" fill="#ffc107" stroke="#333" stroke-width="8" />
+                                            <rect x="240" y="270" width="80" height="40" rx="8" fill="#ffc107" stroke="#333" stroke-width="8" />
+
+                                            <!-- Horizontal boxes (bottom left) -->
+                                            <rect x="100" y="320" width="80" height="40" rx="8" fill="#ffc107" stroke="#333" stroke-width="8" />
+                                            <line x1="180" y1="340" x2="240" y2="340" stroke="#333" stroke-width="12" />
+                                            <rect x="240" y="320" width="80" height="40" rx="8" fill="#ffc107" stroke="#333" stroke-width="8" />
+                                        </svg>
+
+                                        Designation Master
+                                    </a>
+                                </div>
+                            }
+
+                            @if (menurights == null || menurights.Contains("Category") || role == "Admin")
+                            {
+                                <div class="tree-children">
+                                    <a name="Category" href="~/Category/CategoryPage" style="font-size:14px">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <rect x="3" y="3" width="7" height="7" fill="#FEF3C7" stroke="#F59E0B" />
+                                            <rect x="14" y="3" width="7" height="7" fill="#FEF3C7" stroke="#F59E0B" />
+                                            <rect x="14" y="14" width="7" height="7" fill="#FEF3C7" stroke="#F59E0B" />
+                                            <rect x="3" y="14" width="7" height="7" fill="#FEF3C7" stroke="#F59E0B" />
+                                        </svg>
+
+                                        Category Master
+                                    </a>
+                                </div>
+                            }
+
+                            @if (menurights == null || menurights.Contains("Shift") || role == "Admin")
+                            {
+                                <div class="tree-children">
+
+                                    <a name="Shift" href="~/Shift/ShiftPage" style="font-size:14px">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="10" fill="#EEF2FF" />
+                                            <path d="M12 6v6l4 2" />
+                                        </svg>
+
+                                        Shift Master
+                                    </a>
+                                </div>
+                            }
+
+                            @if (menurights == null || menurights.Contains("MachineMap") || role == "Admin")
+                            {
+                                <div class="tree-children">
+                                    <a name="MachineMap" href="~/MachineMap/MachineMapPage" style="font-size:14px">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#0EA5E9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="3" fill="#E0F2FE" stroke="#0EA5E9" />
+                                            <path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" />
+                                        </svg>
+
+                                        Machine Mapping
+                                    </a>
+                                </div>
+                            }
+
+                            @if (menurights == null || menurights.Contains("Holiday") || role == "Admin")
+                            {
+                                <div class="tree-children">
+                                    <a name="Holiday" href="~/Holiday/HolidayPage" style="font-size:14px">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 64 64" fill="none">
+                                            <circle cx="32" cy="32" r="30" stroke="#FFA500" stroke-width="4" fill="#FFFACD" />
+                                            <path d="M32 50V30" stroke="#8B4513" stroke-width="3" stroke-linecap="round" />
+                                            <path d="M32 30C28 25 22 25 18 28C22 24 28 22 32 26C36 22 42 24 46 28C42 25 36 25 32 30Z" fill="#228B22" />
+                                            <ellipse cx="32" cy="54" rx="20" ry="4" fill="#F4A460" />
+                                        </svg>
+                                        Holiday Master
+                                    </a>
+                                </div>
+                            }
+
+                            @if (menurights == null || menurights.Contains("Leave") || role == "Admin")
+                            {
+                                <div class="tree-children">
+                                    <a name="Leave" href="~/Leave/LeavePage" style="font-size:14px">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none">
+                                            <!-- Document Shape -->
+                                            <path d="M6 3h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" fill="#E3F2FD" stroke="#2196F3" stroke-width="1.5" />
+                                            <path d="M14 3v5h5" stroke="#2196F3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+
+                                            <!-- Gear -->
+                                            <g transform="translate(12, 17)">
+                                                <circle r="2" fill="#2196F3" />
+                                                <path d="M0 -4 L0 -5 M0 4 L0 5 M-4 0 L-5 0 M4 0 L5 0 M-2.8 -2.8 L-3.5 -3.5 M2.8 -2.8 L3.5 -3.5 M-2.8 2.8 L-3.5 3.5 M2.8 2.8 L3.5 3.5"
+                                                      stroke="#2196F3" stroke-width="1.2" stroke-linecap="round" />
+                                            </g>
+                                        </svg>
+
+                                        Leave Master
+                                    </a>
+                                </div>
+                            }
+
+                            @if (menurights == null || menurights.Contains("Employee") || role == "Admin")
+                            {
+                                <div class="tree-children">
+                                    <a name="Employee" href="~/Employee/EmployeePage" style="font-size:14px">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="#4A90E2" viewBox="0 0 24 24">
+                                            <path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 2.2c-3.2 0-9.5 1.6-9.5 4.9V22h19v-2.9c0-3.3-6.3-4.9-9.5-4.9z" />
+                                        </svg>
+
+                                        Employee Master
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+
+                @if (menurights == null ||
+               menurights.Any(a => "TimesheetUpdate,ShiftAllocation,LeaveApplication".Contains(a))
+               || role == "Admin")
+                {
+                    <div class="tree-nav">
+                        <div class="tree-item">
+                            <button class="tree-toggle" aria-expanded="false" style="font-size:14px">
+                                <span class="arrow">▶</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24">
+                                    <!-- Employee (user) in blue -->
+                                    <circle cx="8" cy="7" r="3" fill="#4A90E2" />
+                                    <path d="M2 20v-1a6 6 0 0 1 12 0v1" fill="none" stroke="#4A90E2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+
+                                    <!-- Gear (management) in orange -->
+                                    <g transform="translate(16,7) scale(0.6)" stroke="#F5A623" stroke-width="1.8" fill="none">
+                                        <circle cx="4" cy="4" r="2.5" />
+                                        <path d="M4 0v1M4 7v1M0 4h1M7 4h1M1.5 1.5l.5.5M6.5 6.5l.5.5M1.5 6.5l.5-.5M6.5 1.5l.5-.5" />
+                                    </g>
+
+                                    <!-- Calendar (shift/leave) in green -->
+                                    <rect x="14" y="14" width="8" height="6" rx="1" fill="#7ED321" stroke="#7ED321" stroke-width="1.2" />
+                                    <line x1="14" y1="16" x2="22" y2="16" stroke="#ffffff" stroke-width="1" />
+                                </svg>
+
+
+                                Employee Management
+                            </button>
+
+                            @if (menurights == null || menurights.Contains("TimesheetUpdate") || role == "Admin")
+                            {
+                                <div class="tree-children">
+                                    <a name="TimesheetUpdate" href="~/Employee/EmployeeTimeSheetUpdate" style="font-size:14px">
+                                        <svg width="25" height="25" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <rect x="10" y="8" width="44" height="48" rx="3" fill="#FFD166" stroke="#073B4C" stroke-width="2" />
+                                            <rect x="24" y="4" width="16" height="8" rx="2" fill="#FFD166" stroke="#073B4C" stroke-width="2" />
+                                            <line x1="18" y1="20" x2="46" y2="20" stroke="#073B4C" stroke-width="2" />
+                                            <line x1="18" y1="26" x2="42" y2="26" stroke="#073B4C" stroke-width="2" />
+                                            <line x1="18" y1="32" x2="38" y2="32" stroke="#073B4C" stroke-width="2" />
+                                        </svg>
+                                        Manual Timesheet Entry
+                                    </a>
+                                </div>
+                            }
+
+                            @if (menurights == null || menurights.Contains("ShiftAllocation") || role == "Admin")
+                            {
+                                <div class="tree-children">
+                                    <a name="ShiftAllocation" href="~/ShiftAllocation/Create" style="font-size:14px">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="#3B82F6" fill="#EFF6FF" />
+                                            <path d="M16 2v4M8 2v4M3 10h18" stroke="#3B82F6" />
+                                            <path d="M12 14l2 2-2 2m0-4l-2 2 2 2" stroke="#10B981" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+
+                                        Shift Allocation
+                                    </a>
+                                </div>
+                            }
+
+
+                            @if (menurights == null || menurights.Contains("LeaveApplication") || role == "Admin")
+                            {
+                                <div class="tree-children">
+                                    <a name="Leave" href="~/Employee/Leave" style="font-size:14px">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none">
+                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" fill="#E3F2FD" stroke="#2196F3" stroke-width="1.5" />
+                                            <line x1="3" y1="10" x2="21" y2="10" stroke="#2196F3" stroke-width="1.5" />
+                                            <path d="M9 14l2 2 4-4" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+
+                                        Leave Application
+                                    </a>
+                                </div>
+                            }
+
+                            @if (menurights == null || menurights.Contains("LeaveApprovalManual") || role == "Admin")
+                            {
+                                <div class="tree-children">
+                                    <a name="LeaveApprovalManual" href="~/Reports/LeaveApprovalManual" style="font-size:14px">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#28a745"
+                                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <!-- Calendar outline -->
+                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                            <line x1="16" y1="2" x2="16" y2="6" />
+                                            <line x1="8" y1="2" x2="8" y2="6" />
+                                            <line x1="3" y1="10" x2="21" y2="10" />
+                                            <!-- Checkmark -->
+                                            <polyline points="9 16 11.5 18.5 15 14" stroke="#28a745" stroke-width="2" />
+                                        </svg>
+                                        Leave Approval Manual
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+
+                @if (menurights == null ||
+               menurights.Any(a => "AttendanceReport,EmployeeReport,Timecard,TimecardAdvance,LeaveStatusReport".Contains(a))
+               || role == "Admin")
+                {
+                    <div class="tree-nav">
+                        <div class="tree-item">
+                            <button class="tree-toggle" aria-expanded="false" style="font-size:14px">
+                                <span class="arrow">▶</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="4" y="2" width="16" height="20" rx="2" ry="2" fill="#DBEAFE" stroke="#2563EB" />
+                                    <path d="M8 6h8M8 10h8M8 14h4" stroke="#2563EB" />
+                                    <path d="M12 18v-2m-2 2v-1m4 1v-3" stroke="#1D4ED8" />
+                                </svg>
+
+                                Reports
+                            </button>
+
+                            @if (menurights == null || menurights.Contains("AttendanceReport") || role == "Admin")
+                            {
+                                <div class="tree-children">
+                                    <a name="AttendanceReport" href="~/Reports/AttendanceReport" style="font-size:14px">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 70 70">
+                                            <!-- Card Background -->
+                                            <rect x="8" y="8" width="40" height="48" rx="6" ry="6" fill="#ffffff" stroke="#e0e0e0" stroke-width="2" />
+
+                                            <!-- User Icon -->
+                                            <circle cx="24" cy="24" r="6" fill="#2196f3" />
+                                            <circle cx="24" cy="24" r="2.5" fill="#ffffff" />
+                                            <path d="M18,34 a1,1 0 0,1 12,0" fill="#2196f3" />
+
+                                            <!-- Check Mark Badge -->
+                                            <circle cx="44" cy="24" r="6" fill="#4caf50" />
+                                            <polyline points="41,24 43.5,27 47,21" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" />
+
+                                            <!-- Report Text Lines -->
+                                            <rect x="16" y="40" width="32" height="4" rx="2" fill="#b0bec5" />
+                                            <rect x="16" y="48" width="28" height="4" rx="2" fill="#b0bec5" />
+                                        </svg>
+
+                                        Attendance Report
+                                    </a>
+                                </div>
+                            }
+                            @if (menurights == null || menurights.Contains("Timecard") || role == "Admin")
+                            {
+                                <div class="tree-children">
+                                    <a name="Timecard" href="~/Employee/Timecard" style="font-size:14px">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none">
+                                            <!-- Document -->
+                                            <rect x="4" y="2" width="16" height="20" rx="2" ry="2" fill="#DBEAFE" stroke="#2563EB" stroke-width="2" />
+
+                                            <!-- Lines on Card -->
+                                            <line x1="8" y1="7" x2="16" y2="7" stroke="#2563EB" stroke-width="1.5" />
+                                            <line x1="8" y1="11" x2="16" y2="11" stroke="#2563EB" stroke-width="1.5" />
+                                            <line x1="8" y1="15" x2="13" y2="15" stroke="#2563EB" stroke-width="1.5" />
+
+                                            <!-- Clock -->
+                                            <circle cx="18" cy="18" r="4" fill="#ffffff" stroke="#1D4ED8" stroke-width="2" />
+                                            <line x1="18" y1="18" x2="18" y2="16" stroke="#1D4ED8" stroke-width="1.5" />
+                                            <line x1="18" y1="18" x2="20" y2="18" stroke="#1D4ED8" stroke-width="1.5" />
+                                        </svg>
+
+                                        Time Card
+                                    </a>
+                                </div>
+                            }
+                            @if (menurights == null || menurights.Contains("TimecardAdvance") || role == "Admin")
+                            {
+                                <div class="tree-children">
+                                    <a name="TimecardAdvance" href="~/Employee/TimecardAdvanced" style="font-size:14px">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none">
+                                            <!-- Document -->
+                                            <rect x="4" y="2" width="16" height="20" rx="2" ry="2" fill="#DBEAFE" stroke="#2563EB" stroke-width="2" />
+
+                                            <!-- Lines on Card -->
+                                            <line x1="8" y1="7" x2="16" y2="7" stroke="#2563EB" stroke-width="1.5" />
+                                            <line x1="8" y1="11" x2="16" y2="11" stroke="#2563EB" stroke-width="1.5" />
+                                            <line x1="8" y1="15" x2="13" y2="15" stroke="#2563EB" stroke-width="1.5" />
+
+                                            <!-- Clock -->
+                                            <circle cx="18" cy="18" r="4" fill="#ffffff" stroke="#1D4ED8" stroke-width="2" />
+                                            <line x1="18" y1="18" x2="18" y2="16" stroke="#1D4ED8" stroke-width="1.5" />
+                                            <line x1="18" y1="18" x2="20" y2="18" stroke="#1D4ED8" stroke-width="1.5" />
+                                        </svg>
+
+                                        Time Card Advanced
+                                    </a>
+                                </div>
+                            }
+                            @if (menurights == null || menurights.Contains("LeaveStatusReport") || role == "Admin")
+                            {
+                                <div class="tree-children">
+                                    <a name="TimecardAdvance" href="~/Reports/EmployeeLeaveStatusReport" style="font-size:14px">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="none" viewBox="0 0 64 64">
+                                            <!-- Document -->
+                                            <rect x="12" y="8" width="40" height="48" rx="4" ry="4" fill="#e0e7ff" stroke="#3b82f6" stroke-width="2"/>
+  
+                                            <!-- Header line -->
+                                            <rect x="18" y="16" width="28" height="4" rx="2" fill="#3b82f6"/>
+  
+                                            <!-- Sub-lines -->
+                                            <rect x="18" y="24" width="20" height="3" rx="1.5" fill="#60a5fa"/>
+                                            <rect x="18" y="30" width="24" height="3" rx="1.5" fill="#60a5fa"/>
+                                            <rect x="18" y="36" width="18" height="3" rx="1.5" fill="#60a5fa"/>
+  
+                                            <!-- Checkmark circle -->
+                                            <circle cx="48" cy="48" r="10" fill="#10b981"/>
+                                            <path d="M43 48l3 3 6-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+                                            <!-- Calendar hint -->
+                                            <rect x="42" y="10" width="8" height="6" rx="1" fill="#3b82f6"/>
+                                            <rect x="50" y="10" width="8" height="6" rx="1" fill="#3b82f6"/>
+                                        </svg>
+
+
+                                        Leave Status Report
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+
+                @if (menurights == null ||
+               menurights.Any(a => "BiometricImport,Backup".Contains(a))
+               || role == "Admin")
+                {
+                    <div class="tree-nav">
+                        <div class="tree-item">
+                            <button class="tree-toggle" aria-expanded="false" style="font-size:14px">
+                                <span class="arrow">▶</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24">
+                                    <!-- Toolbox base -->
+                                    <rect x="3" y="8" width="18" height="12" rx="2" ry="2" fill="#607D8B" stroke="#455A64" stroke-width="1.5" />
+
+                                    <!-- Toolbox handle -->
+                                    <rect x="8" y="5" width="8" height="3" rx="1" ry="1" fill="#90A4AE" stroke="#455A64" stroke-width="1.2" />
+
+                                    <!-- Wrench (symbolizing tools/utilities) -->
+                                    <path d="M20.7 5.3a2.5 2.5 0 0 1-3.4 3.4l-2.3 2.3 1.4 1.4 2.3-2.3a2.5 2.5 0 1 1 2-4.8z"
+                                          fill="#FFC107" stroke="#FF9800" stroke-width="1.2" />
+                                </svg>
+
+                                Utilities
+                            </button>
+                            @if (menurights == null || menurights.Contains("BiometricImport") || role == "Admin")
+                            {
+                                <div class="tree-children">
+                                    <a name="BiometricImport" href="~/BiometricImport/BiometricImportPage" style="font-size:14px">
+                                        <svg width="25" height="25" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <!-- Device Frame -->
+                                            <rect x="2" y="3" width="20" height="18" rx="2" fill="#e6e6e6" stroke="#333" stroke-width="1.5" />
+
+                                            <!-- Screen -->
+                                            <rect x="4" y="5" width="10" height="5" rx="1" fill="#b3d9ff" stroke="#222" stroke-width="1" />
+
+                                            <!-- Keypad -->
+                                            <g fill="#999">
+                                                <rect x="5" y="12" width="2" height="2" rx="0.3" />
+                                                <rect x="8" y="12" width="2" height="2" rx="0.3" />
+                                                <rect x="11" y="12" width="2" height="2" rx="0.3" />
+
+                                                <rect x="5" y="15" width="2" height="2" rx="0.3" />
+                                                <rect x="8" y="15" width="2" height="2" rx="0.3" />
+                                                <rect x="11" y="15" width="2" height="2" rx="0.3" />
+                                            </g>
+
+                                            <!-- Fingerprint Sensor -->
+                                            <circle cx="18" cy="14.5" r="2.5" fill="#ddd" stroke="#000" stroke-width="1" />
+                                            <path d="M17.3 14.5a1 1 0 0 1 2 0m-1.5.8c.3.5 1 .5 1.3 1.2" stroke="#000" stroke-width="0.8" stroke-linecap="round" />
+
+                                            <!-- Label -->
+                                            <text x="4" y="20.5" font-size="2.5" font-family="Arial" fill="#333">Biometric</text>
+                                        </svg>
+                                        Biometric Integration
+                                    </a>
+                                </div>
+                            }
+                            @if (menurights == null || menurights.Contains("Backup") || role == "Admin")
+                            {
+                                <div class="tree-children">
+                                    <a name="Backup" href="~/Backup/CreateBackup" style="font-size:14px">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24">
+                                            <path fill="#60A5FA" d="M19 18H6a4 4 0 010-8 5 5 0 019.9-1.1A4 4 0 0119 18z" />
+                                            <path fill="#34D399" d="M12 13v5m0 0l-3-3m3 3l3-3" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                        Backup
+                                    </a>
+                                </div>
+                            }
+                            @if (menurights == null || menurights.Contains("EmailConfiguration") || role == "Admin")
+                            {
+                                <div class="tree-children">
+                                    <a name="EmailConfiguration" href="~/MailConfiguration/EmailConfig" style="font-size:14px">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48">
+                                            <!-- Gmail-style envelope -->
+                                            <path fill="#EA4335" d="M4 12v24c0 2.21 1.79 4 4 4h8V24L4 12z" />
+                                            <path fill="#34A853" d="M44 12v24c0 2.21-1.79 4-4 4h-8V24L44 12z" />
+                                            <path fill="#FBBC05" d="M36 40H12c-2.21 0-4-1.79-4-4V18l16 12 16-12v18c0 2.21-1.79 4-4 4z" />
+                                            <path fill="#4285F4" d="M44 12L24 28 4 12h40z" />
+
+                                            <!-- Gear icon (bottom right corner) -->
+                                            <g transform="translate(32, 32) scale(0.6)">
+                                                <circle cx="8" cy="8" r="6" fill="none" stroke="#6c757d" stroke-width="2" />
+                                                <path d="M8 2v2M8 12v2M2 8h2M12 8h2M3.76 3.76l1.42 1.42M10.82 10.82l1.42 1.42M3.76 12.24l1.42-1.42M10.82 5.18l1.42-1.42"
+                                                      stroke="#6c757d" stroke-width="1.5" stroke-linecap="round" />
+                                            </g>
+                                        </svg>
+
+                                        Email Confgiration
+                                    </a>
+                                </div>
+                            }
+                             @if (menurights == null || menurights.Contains("Map") || role == "Admin")
+                            {
+                                <div class="tree-children">
+                                    <a name="Map" href="~/GeoLocation/ViewLocation" style="font-size:14px">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48">
+                                            <!-- Gmail-style envelope -->
+                                            <path fill="#EA4335" d="M4 12v24c0 2.21 1.79 4 4 4h8V24L4 12z" />
+                                            <path fill="#34A853" d="M44 12v24c0 2.21-1.79 4-4 4h-8V24L44 12z" />
+                                            <path fill="#FBBC05" d="M36 40H12c-2.21 0-4-1.79-4-4V18l16 12 16-12v18c0 2.21-1.79 4-4 4z" />
+                                            <path fill="#4285F4" d="M44 12L24 28 4 12h40z" />
+
+                                            <!-- Gear icon (bottom right corner) -->
+                                            <g transform="translate(32, 32) scale(0.6)">
+                                                <circle cx="8" cy="8" r="6" fill="none" stroke="#6c757d" stroke-width="2" />
+                                                <path d="M8 2v2M8 12v2M2 8h2M12 8h2M3.76 3.76l1.42 1.42M10.82 10.82l1.42 1.42M3.76 12.24l1.42-1.42M10.82 5.18l1.42-1.42"
+                                                      stroke="#6c757d" stroke-width="1.5" stroke-linecap="round" />
+                                            </g>
+                                        </svg>
+
+                                        Map
+                                    </a>
+                                </div>
+                            }
+
+                        </div>
+                    </div>
+                }
+
+                @if (menurights == null ||
+               menurights.Any(a => "UserCreation,UserRights".Contains(a))
+               || role == "Admin")
+                {
+                    <div class="tree-nav">
+                        <div class="tree-item">
+                            <button class="tree-toggle" aria-expanded="false" style="font-size:14px">
+                                <span class="arrow">▶</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24">
+                                    <!-- First user -->
+                                    <circle cx="6" cy="8" r="3" fill="#4A90E2" />
+                                    <path d="M2 18v-1a4 4 0 0 1 8 0v1" fill="none" stroke="#4A90E2" stroke-width="1.5" stroke-linecap="round" />
+
+                                    <!-- Second user -->
+                                    <circle cx="16" cy="9" r="2.5" fill="#7ED321" />
+                                    <path d="M12.5 18v-1a3.5 3.5 0 0 1 7 0v1" fill="none" stroke="#7ED321" stroke-width="1.5" stroke-linecap="round" />
+
+                                    <!-- Gear icon (management) -->
+                                    <g transform="translate(16,2) scale(0.5)" stroke="#F5A623" stroke-width="1.8" fill="none">
+                                        <circle cx="4" cy="4" r="2.5" />
+                                        <path d="M4 0v1M4 7v1M0 4h1M7 4h1M1.5 1.5l.5.5M6.5 6.5l.5.5M1.5 6.5l.5-.5M6.5 1.5l.5-.5" />
+                                    </g>
+                                </svg>
+
+
+                                User Management
+                            </button>
+
+                            @if (menurights == null || menurights.Contains("UserCreation") || role == "Admin")
+                            {
+                                <div class="tree-children">
+                                    <a name="UserCreation" href="~/Account/UserCreation" style="font-size:14px">
+                                        <svg width="25" height="25" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <circle cx="32" cy="32" r="32" fill="#E0F7FA" />
+                                            <circle cx="32" cy="24" r="12" fill="#00ACC1" />
+                                            <path d="M16 48c0-8.837 7.163-16 16-16s16 7.163 16 16v2H16v-2z" fill="#4DD0E1" />
+                                        </svg>
+
+                                        Create User
+                                    </a>
+                                </div>
+                            }
+                            @if (role == "Admin")
+                            {
+                                <div class="tree-children">
+                                    <a name="UserRights" href="~/Account/UserRights" style="font-size:14px">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+                                            <path fill="#2196F3" d="M12 2a5 5 0 0 1 5 5c0 2.76-2.24 5-5 5S7 9.76 7 7a5 5 0 0 1 5-5z" />
+                                            <path fill="#64B5F6" d="M12 14c3.31 0 6 2.69 6 6v1H6v-1c0-3.31 2.69-6 6-6z" />
+                                            <path fill="#1976D2" d="M21.03 8.61l-2.13-.71a1 1 0 0 0-.64 0l-2.13.71a1 1 0 0 0-.69.95c0 3.14 1.91 5.74 4.58 6.73a.99.99 0 0 0 .72 0c2.67-.99 4.58-3.59 4.58-6.73 0-.43-.28-.81-.69-.95z" />
+                                        </svg>
+
+                                        User Rights
+                                    </a>
+                                </div>
+                            }
+
+
+                        </div>
+                    </div>
+                }
+
+                <div class="tree-nav">
+                    <a name="Logout" href="~/Account/Logout" style="font-size:14px">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none">
+                            <path d="M18.36 6.64a9 9 0 1 1-12.73 0" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                            <line x1="12" y1="2" x2="12" y2="12" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        Logout
+                    </a>
+                </div>
+
+            </div>
+
+
+            <span style="font-size:20px;cursor:pointer" onclick="openNav()">&#9776;</span>
+        }
+
+        <div class="main-content">
+            <div class="container body-content">
+
+                @RenderBody()
+                <hr />
+
+                <footer style="display: flex; align-items: center; gap: 10px; padding: 10px;">
+                    <img src="~/image/sfon1.png" alt="Owaisi Group Logo" style="height: 80px;">
+                    <p style="margin: 0;">SFON Technologies LLP 
+                        <span style="font-size: 0.8em;"> 
+                            Copyright © 2025 All Rights Reserved
+                        </span>
+                    </p>
+                </footer>
+                
+            </div>
+        </div>
+        @RenderSection("Scripts", required: false)
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+<script>
+    function openNav() {
+        document.getElementById("mySidenav").style.width = "250px";
+        document.getElementById("mainWrapper").classList.add("sidenav-open");
+    }
+
+    function closeNav() {
+        document.getElementById("mySidenav").style.width = "0";
+        document.getElementById("mainWrapper").classList.remove("sidenav-open");
+    }
+
+    @* toggel treeItems *@
+     document.addEventListener("DOMContentLoaded", function () {
+         //debugger;
+         document.querySelectorAll(".tree-toggle").forEach(toggle => {
+             toggle.addEventListener("click", function () {
+                 const expanded = this.getAttribute("aria-expanded") === "true";
+                 this.setAttribute("aria-expanded", !expanded);
+
+                 const arrow = this.querySelector(".arrow");
+                 arrow.textContent = expanded ? "▶" : "▼";
+
+                 // Show/hide all following siblings that have class 'tree-children'
+                 let sibling = this.nextElementSibling;
+                 while (sibling && sibling.classList.contains("tree-children")) {
+                     sibling.style.display = expanded ? "none" : "block";
+                     sibling = sibling.nextElementSibling;
+                 }
+             });
+         });
+    });
+
+</script>
+
+<script>
+    @* function filterSidenav() {
+        const input = document.getElementById("sidenavSearch");
+        const filter = input.value.toLowerCase();
+        const treeNavs = document.querySelectorAll("#mySidenav .tree-nav");
+
+        treeNavs.forEach(nav => {
+            const text = nav.innerText.toLowerCase();
+            if (text.includes(filter)) {
+                nav.style.display = "";
+                // Expand tree-toggle if matched
+                const toggle = nav.querySelector(".tree-toggle");
+                const children = nav.querySelector(".tree-children");
+                if (toggle && children) {
+                    toggle.setAttribute("aria-expanded", "true");
+                    children.style.display = "block";
+                }
+            } else {
+                nav.style.display = "none";
+            }
+        });
+        }    *@
+
+        function filterSidenav() {
+        const input = document.getElementById("sidenavSearch");
+        const filter = input.value.trim().toLowerCase();
+
+        const allNavItems = document.querySelectorAll("#mySidenav .tree-nav");
+
+        allNavItems.forEach(nav => {
+            const flatLink = nav.querySelector(":scope > a"); // For 'Home', etc.
+            const toggleButton = nav.querySelector(".tree-toggle");
+            const treeChildren = nav.querySelectorAll(".tree-children");
+            let matchFound = false;
+
+            // Case 1: Flat link (like Home)
+            if (flatLink) {
+                const text = flatLink.textContent.toLowerCase();
+                if (text.includes(filter)) {
+                    nav.style.display = "";
+                    matchFound = true;
+                } else {
+                    nav.style.display = "none";
+                }
+            }
+
+            // Case 2: Tree group (like Reports)
+            if (toggleButton && treeChildren.length > 0) {
+                let anyChildVisible = false;
+
+                treeChildren.forEach(child => {
+                    const childLink = child.querySelector("a");
+                    if (childLink && childLink.textContent.toLowerCase().includes(filter)) {
+                        child.style.display = "block";
+                        anyChildVisible = true;
+                    } else {
+                        child.style.display = "none";
+                    }
+                });
+
+                if (anyChildVisible) {
+                    nav.style.display = "";
+                    toggleButton.setAttribute("aria-expanded", "true");
+                    toggleButton.querySelector(".arrow").textContent = "▼";
+                } else {
+                    nav.style.display = filter ? "none" : "";
+                    toggleButton.setAttribute("aria-expanded", "false");
+                    toggleButton.querySelector(".arrow").textContent = "▶";
+                }
+            }
+        });
+    }
+
+
+</script>
+
+<script>
+    function updateDateTime() {
+        const now = new Date();
+        const options = {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        };
+        const formattedDateTime = now.toLocaleString('en-GB', options).replace(',', '');
+        document.getElementById("currentDateTime").innerText = formattedDateTime;
+    }
+
+    // Initial call and interval setup
+    updateDateTime();
+    setInterval(updateDateTime, 1000);
+</script>

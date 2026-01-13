@@ -1,0 +1,199 @@
+﻿@model EMSSolution.Models.LoginModel
+@{
+    ViewData["Title"] = "Login";
+}
+@{
+    var isDev = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+    var bgUrl = isDev ? "/Content/emslogin.jpg" : "/EMSSolution/Content/emslogin.jpg";
+    //var bgUrl = isDev ? "/Content/emslogin.gif" : "/EMSSolution/Content/emslogin.gif";
+}
+
+@{
+    ViewData["HideTopStrip"] = true;
+}
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Login - Your App</title>
+    
+   
+    
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden; /* Prevent scrolling */
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: url('@bgUrl') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            width: 400px;
+            position: absolute;
+            top: 50%;
+            right: 50px;
+            transform: translateY(-50%);
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+            .login-container h2 {
+                margin-bottom: 30px;
+                font-size: 28px;
+                color: #333;
+            }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+            .form-group label {
+                font-weight: 600;
+                display: block;
+                margin-bottom: 8px;
+            }
+
+            .form-group input {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid #ccc;
+                border-radius: 6px;
+            }
+
+        .login-btn {
+            background-color: #007BFF;
+            color: white;
+            padding: 12px;
+            width: 100%;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+            .login-btn:hover {
+                background-color: #0056b3;
+            }
+
+        .login-footer {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+            .login-footer a {
+                color: #007BFF;
+                text-decoration: none;
+            }
+
+                .login-footer a:hover {
+                    text-decoration: underline;
+                }
+    </style>
+
+</head>
+<body>
+  
+    <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+        <div class="col-12 col-sm-8 col-md-6 col-lg-4">
+           
+            <div class="card shadow p-4" style="background-color:#464646;color:#fff">
+                @if (TempData["LoginError"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["LoginError"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                
+
+                <h2 class="text-center mb-4">
+                    Login
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" fill="#43A047" /> <!-- Green circle background -->
+                        <path fill="#E8F5E9" d="M12 13a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm4-3h-6V8a2 2 0 0 1 4 0h2a4 4 0 0 0-8 0v2H8c-.55 0-1 .45-1 1v5c0 .55.45 1 1 1h8c.55 0 1-.45 1-1v-5c0-.55-.45-1-1-1z" />
+                    </svg>
+
+                </h2>
+                               
+                <form method="post">
+                    <div class="form-group">
+                        <label for="UserName">
+                            <svg width="30" height="30" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="32" cy="32" r="32" fill="#E0F7FA" />
+                                <circle cx="32" cy="24" r="12" fill="#00ACC1" />
+                                <path d="M16 48c0-8.837 7.163-16 16-16s16 7.163 16 16v2H16v-2z" fill="#4DD0E1" />
+                            </svg>
+                            User Name
+                        </label>
+                        <input type="text" id="UserName" name="Username" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="Password">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-key" viewBox="0 0 16 16">
+                                <path d="M0 8a4 4 0 0 1 7.465-2H14a.5.5 0 0 1 .354.146l1.5 1.5a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0L13 9.207l-.646.647a.5.5 0 0 1-.708 0L11 9.207l-.646.647a.5.5 0 0 1-.708 0L9 9.207l-.646.647A.5.5 0 0 1 8 10h-.535A4 4 0 0 1 0 8m4-3a3 3 0 1 0 2.712 4.285A.5.5 0 0 1 7.163 9h.63l.853-.854a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.793-.793-1-1h-6.63a.5.5 0 0 1-.451-.285A3 3 0 0 0 4 5" fill="#FFD700" />
+                                <path d="M4 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0" fill="Blue" />
+                            </svg>
+                            Password
+                        </label>
+                        <input type="password" id="Password" name="Password" class="form-control" required />
+                    </div>
+                    <button type="submit" class="btn btn-outline-primary">
+                        Login
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="#fff">
+                            <!-- Tailwind green-500 -->
+                            <path d="M12 17a1.5 1.5 0 1 1 .001-3.001A1.5 1.5 0 0 1 12 17zm6-7V8a6 6 0 1 0-12 0h2a4 4 0 1 1 8 0v2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h0z" />
+                        </svg>
+                    </button>
+
+                    <div style="text-align:center; margin-bottom: 0px;">
+                        <img src="~/image/sfon1.png" alt="Company Logo"
+                             style="max-width: 50px; max-height: 50px;" />
+                        <p style="font-size:smaller">SFON Technologies LLP Copyright © 2025 All Rights Reserved</p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<script>
+    // call this if login fails
+    function showError(message) {
+        let alertBox = document.createElement("div");
+        alertBox.className = "alert alert-danger alert-dismissible fade show mt-3";
+        alertBox.role = "alert";
+        alertBox.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        document.querySelector(".card").prepend(alertBox);
+    }
+
+    // Example usage:
+    // showError("Invalid username or password.");
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("UserName").focus();
+    });
+</script>
+
+<script>
+    
+    // document.addEventListener('contextmenu', function (e) {
+    //     e.preventDefault();
+    // });
+</script>

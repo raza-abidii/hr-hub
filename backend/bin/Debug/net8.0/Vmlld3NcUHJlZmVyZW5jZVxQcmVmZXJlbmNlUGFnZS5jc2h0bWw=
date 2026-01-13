@@ -1,0 +1,178 @@
+﻿@{
+    ViewBag.Title = "Company Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/Style.css">
+
+</head>
+
+<body>
+    <div class="container">
+        <h4 class="text-center d-flex justify-content-center align-items-center gap-2">
+            Preference
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="Preferences">
+                <line x1="3" y1="6" x2="12" y2="6" stroke="#4A90E2" stroke-width="2" stroke-linecap="round" />
+                <circle cx="10" cy="6" r="2" fill="#4A90E2" />
+
+                <line x1="3" y1="12" x2="20" y2="12" stroke="#27ae60" stroke-width="2" stroke-linecap="round" />
+                <circle cx="16" cy="12" r="2" fill="#27ae60" />
+
+                <line x1="3" y1="18" x2="10" y2="18" stroke="#f39c12" stroke-width="2" stroke-linecap="round" />
+                <circle cx="6" cy="18" r="2" fill="#f39c12" />
+            </svg>
+
+        </h4>
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <ul class="nav nav-tabs card-header-tabs" id="leaveTabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-tab="leavePrefTab" href="#">Leave Preference</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="hrTab" href="#">HR</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card-body">
+                <form id="leavePreferenceForm">
+
+                    <!-- TAB 1 : Leave Preference -->
+                    <div id="leavePrefTab" class="tab-section">
+
+                        <!-- Checkbox -->
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="secondLevelApproval" />
+                            <label class="form-check-label fw-bold" for="secondLevelApproval">
+                                Require Second Level Approval
+                            </label>
+                        </div>
+
+                        <!-- Hidden Section -->
+                        <div id="secondLevelFields" style="display:none">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Select User</label>
+                                    <select id="secondLevelUser" class="form-select">
+                                        <option value="">-- Select --</option>
+                                        @foreach (var usr in ViewBag.user)
+                                        {
+                                            <option value="@usr.Id">@usr.UserName</option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Email ID</label>
+                                    <input type="email" id="secondLevelEmail" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 2 : HR -->
+                    <div id="hrTab" class="tab-section" style="display:none;">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">HR Email ID</label>
+                                <input type="email" id="hrEmail" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Save Button -->
+                    <div class="text-end">
+                        <button type="button" id="btnSave" class="btn btn-primary">
+                            <i class="fa fa-save"></i> Save Preference
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            fillSaved();
+            // Tab switching logic
+            $("#leaveTabs .nav-link").click(function (e) {
+                e.preventDefault();
+                $("#leaveTabs .nav-link").removeClass("active");
+                $(this).addClass("active");
+                $(".tab-section").hide();
+                let target = $(this).data("tab");
+                $("#" + target).show();
+            });
+
+            // Toggle second-level fields
+            $("#secondLevelApproval").change(function () {
+                if ($(this).is(":checked")) {
+                    $("#secondLevelFields").slideDown();
+                } else {
+                    $("#secondLevelFields").slideUp();
+                }
+            });
+
+            // Save Preference
+            $("#btnSave").click(function () {
+                let data = {
+                    SecondLevelApproval: $("#secondLevelApproval").is(":checked"),
+                    SecondLevelUser: $("#secondLevelUser").val()||"",
+                    SecondLevelEmail: $("#secondLevelEmail").val()||"",
+                    hrEmailID: $("#hrEmail").val()
+                };
+
+                $.ajax({
+                    url: '@Url.Action("SavePreference", "Preference")',
+                    type: 'POST',
+                   
+                    data: data,
+                    success: function (res) {
+                        alert("Preferences saved successfully!");
+                    },
+                    error: function () {
+                        alert("Error saving preferences!");
+                    }
+                });
+            });
+
+           
+        });
+
+
+        function fillSaved()
+        {
+            debugger;
+            $.ajax({
+            url: '@Url.Action("GetPreference", "Preference")',
+
+                success: function (response) {
+                    if (response.status == true) {
+                        $("#secondLevelApproval").prop("checked", response.data.secLvlLeaveApproval);
+                        $('#secondLevelUser').val(response.data.secLvlLeaveAppUser );
+                        $('#secondLevelEmail').val(response.data.secLvlLeaveAppUserMail );
+                        $('#hrEmail').val(response.data.hrEmailId );
+                        $("#secondLevelFields").slideDown();
+                    }
+                    else {
+                        //alert(response.message);
+                    }
+
+                },
+                error: function (e) {
+                    debugger;
+                }
+            });
+        }
+
+
+    </script>
+}

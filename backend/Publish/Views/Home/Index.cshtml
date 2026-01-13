@@ -1,0 +1,616 @@
+﻿@using Microsoft.AspNetCore.Http
+@using System.Globalization
+@{
+    ViewData["Title"] = "Home Page";
+    var role = Context.Session.GetString("Role");
+}
+
+@model List<EMSSolution.Models.TimecardAdvance>
+@{
+    int year = ViewBag.Year;
+    int month = ViewBag.Month;
+    var daysInMonth = DateTime.DaysInMonth(year, month);
+    var firstDayOfWeek = (int)new DateTime(year, month, 1).DayOfWeek;
+    var date = new DateTime(year, month, 1);
+    var currentYear = DateTime.Now.Year;
+    var years = Enumerable.Range(currentYear - 5, 11).ToList();
+    var prevDate = new DateTime(year, month, 1).AddMonths(-1);
+    var nextDate = new DateTime(year, month, 1).AddMonths(1);
+}
+
+<style>
+    .table-sm th, .table-sm td {
+        padding: 0.2rem;
+    }
+
+    .card {
+        font-size: 12px;
+        border-radius: 10px;
+    }
+
+    .card-header h5 {
+        font-size: 14px;
+    }
+
+    .calendar-cell {
+        cursor: pointer;
+        font-size: 11px;
+        padding: 2px;
+    }
+
+    .bg-present {
+        background-color: #c8e6c9 !important;
+    }
+
+    .bg-leave {
+        background-color: #fff9c4 !important;
+    }
+
+    .bg-absent {
+        background-color: #ffcdd2 !important;
+    }
+
+    .bg-late {
+        background-color: #ffab91 !important;
+    }
+
+    .bg-holiday {
+        background-color: #b2dfdb !important;
+    }
+
+    .calendar-wrapper {
+        max-width: 300px;
+        width: 100%;
+        margin: auto;
+    }
+
+    .nav-controls {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+    }
+
+    select.form-select-sm, .btn-sm {
+        font-size: 12px;
+        padding: 0.2rem 0.4rem;
+    }
+</style>
+
+@* Toast Message to show the error for Password Change *@
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+        //debugger;
+        // Show toast if message exists
+        var toastEl = document.getElementById('toastMessage');
+        if (toastEl && toastEl.innerText.trim() !== "") {
+        var toast = new bootstrap.Toast(toastEl);
+        toast.show();
+
+        }
+
+        // Show Change Password Modal if flag is set
+        var shouldShowModal = '@TempData["ShowChangePasswordModal"]';
+        if (shouldShowModal === 'true') {
+        var modal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+        modal.show();
+        }
+        });
+    </script>
+}
+
+<div class="home-background">
+    @* <h1>Welcome to My MVC App</h1>
+    <p>This is the home page with a background image.</p> *@
+</div>
+
+<div class="container mt-4 d-flex gap-4 flex-wrap">
+    @if (role == "Admin")
+    {
+        <!-- Department Card -->
+        <div class="card shadow-sm rounded" style="width: 300px;height:300px;top:-15px;background-color:#575357" id="departmentCard">
+            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Department</h5>
+                <button class="btn btn-sm btn-primary" id="btnRefreshDept">
+                    @* <i class="bi bi-arrow-clockwise"></i> *@
+                    <svg id="refreshIconDept" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 1 0-.908-.418A6 6 0 1 0 8 2v1z" />
+                        <path d="M8 0a.5.5 0 0 0-.5.5v3.707L6.354 3.061a.5.5 0 1 0-.708.708l2 2a.5.5 0 0 0 .708 0l2-2a.5.5 0 0 0-.708-.708L8.5 4.207V.5A.5.5 0 0 0 8 0z" />
+                    </svg>
+                </button>
+            </div>
+            <div class="card-body py-2 px-3" id="cardBodyDept" style="font-size: 0.9rem;">
+                <div style="width:296px;margin-left:-15px;margin-top:-5px; overflow-y: auto;max-height:248px" id="scrollContainer">
+                    @if (ViewBag.Department != null)
+                    {
+                        <ul id="deptCard" class="list-group">
+                            @foreach (var item in ViewBag.Department)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>@item.sName</strong><br />
+                                        <small>@item.sName-@item.sCode</small>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p>No employees found.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    @if (role == "Admin")
+    {
+        <!-- Shift Card -->
+        <div class="card shadow-sm rounded" style="width: 300px;height:300px;top:-15px ;background-color:#575357" id="shiftCard">
+            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Shift</h5>
+                @*  <button class="btn btn-sm btn-light" id="toggleButtonShift" title="Minimize">
+                <i class="bi bi-dash-lg" id="toggleIconSift"></i>
+            </button> *@
+            </div>
+            <div class="card-body py-2 px-3" id="cardBodyShift" style="font-size: 0.9rem; ">
+                <div style="width:296px;margin-left:-15px;margin-top:-6px; overflow-y: auto;max-height:248px" id="scrollContainerShift">
+                    @if (ViewBag.Shift != null)
+                    {
+                        <ul class="list-group">
+                            @foreach (var item in ViewBag.Shift)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>@item.sShiftName</strong><br />
+                                        <small>In-Time: @item.sStartTime</small>
+                                        <small>Out-Time: @item.sEndTime</small>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p>No locations found.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (role == "Admin" )
+    {
+        <!-- Attendance Card -->
+        <div class="card shadow-sm rounded" style="width: 400px;height:300px;top:-15px;background-color:#575357" id="attendanceCard">
+            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Today Attendance</h5>
+            </div>
+            <div class="card-body py-2 px-3" id="cardBodyattendance" style="font-size: 0.9rem; ">
+                <div style="max-height: 230px; overflow-y: auto;width:395px;margin-left:-15px;margin-top:-10px" id="scrollContainerAttendance">
+                    <div class="table-responsive" style="font-size:12px">
+                        <table id="dbTable" class="table table-hover table-bordered">
+                            <thead class="custom-header" style="font-size:12px">
+                                <tr>
+                                    <th style="background-color:#dee2e6"> Employee Name</th>
+                                    <th style="background-color:#dee2e6"> Category</th>
+                                    <th style="background-color:#dee2e6"> Login Time</th>
+                                    <th style="background-color:#dee2e6"> Login Status</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @if (ViewBag.AttendanceDashBoard != null)
+                                {
+                                    @foreach (var item in ViewBag.AttendanceDashBoard)
+                                    {
+                                        string rowColor = @item.loginStatus switch
+                                        {
+                                            "Ontime" => "background-color: #01ab29 !important;color:#FFFFFF",     // light green
+                                            "Late" => "background-color: #ff2b00 !important;color:#FFFFFF",    // light red
+
+                                            _ => ""
+                                        };
+
+                                        DateTime @dt = @item.InTime;
+                                        <tr style="font-weight:bold">
+                                            <td style="@rowColor">@item.sEmployeeName</td>
+                                            <td style="@rowColor">@item.sCategory</td>
+                                            <td style="@rowColor"> @dt.TimeOfDay</td>
+                                            <td style="@rowColor" class="login-status">@item.loginStatus</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <p>No Attendance found.</p>
+                                }
+                            </tbody>
+
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+
+    @if (role == "Employee" || role == "Manager")
+    {
+
+        <!--Team Member Leave Alert-->
+        <div class="card shadow-sm rounded" style="width: 500px;height:300px;top:-15px;background-color:#575357" id="leaveAlertCard">
+            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Leave Alert</h5>
+            </div>
+            <div class="card-body py-2 px-3" id="cardBodyLeaveAlert" style="font-size: 0.9rem; ">
+                <div style="max-height: 230px; overflow-y: auto;width:495px;margin-left:-15px;margin-top:-10px" id="scrollContainerleaveAlert">
+                    <div class="table-responsive" style="font-size:12px">
+                        <table id="dbTable" class="table table-striped table-hover">
+                            <thead style="font-size:10px">
+                                <tr>
+                                    <th style="background-color:#dee2e6"> Employee Name</th>
+                                    <th style="background-color:#dee2e6"> Leave Date</th>
+                                    <th style="background-color:#dee2e6"> Remarks</th>
+                                    <th style="background-color:#dee2e6"> Leave Type</th>
+                                    <th style="background-color:#dee2e6"> Leave Status</th>
+                                    <th style="background-color:#dee2e6"> Leave Id</th>
+                                    <th style="background-color:#dee2e6"> Action</th>
+                                </tr>
+                            </thead>
+
+                            <tbody style="font-size:10px">
+                                @if (ViewBag.LeaveAlert != null)
+                                {
+                                    @foreach (var item in ViewBag.LeaveAlert)
+                                    {
+                                        <tr>
+                                            <td>@item.EmployeeName</td>
+                                            <td>@item.LeaveDate</td>
+                                            <td> @item.Remarks</td>
+                                            <td> @item.LeaveType</td>
+                                            <td> @item.LeaveStatus</td>
+                                            <td> @item.LeaveId</td>
+                                            <td style="display: flex; gap: 5px; justify-content: center; align-items: center;">
+                                                <button class="btn  btnApprove" data-id="@item.LeaveId">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="green" viewBox="0 0 24 24">
+                                                        <path d="M20.285 6.709l-11.285 11.291-5.285-5.291 1.415-1.418 3.87 3.877 9.87-9.877z" />
+                                                    </svg>
+                                                </button>
+                                                <button class="btn  btnReject" data-id="@item.LeaveId">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="red" viewBox="0 0 24 24">
+                                                        <path d="M18.364 5.636l-1.414-1.414L12 9.172 7.05 4.222 5.636 5.636 10.586 10.586 5.636 15.536l1.414 1.414L12 12.828l4.95 4.95 1.414-1.414-4.95-4.95z" />
+                                                    </svg>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <p>No record found.</p>
+                                }
+                            </tbody>
+
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="remarksModal" tabindex="-1" role="dialog" aria-labelledby="remarksModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="remarksModalLabel">Enter Remarks</h5>
+
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="modalLeaveId" />
+                        <input type="hidden" id="modalActionType" />
+                        <div class="form-group">
+                            <label for="modalRemarks">Remarks</label>
+                            <textarea class="form-control" id="modalRemarks" rows="3" placeholder="Enter your remarks"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="submitRemarks" class="btn btn-primary">Submit</button>
+                        @* <button type="button" class="btn btn-secondary"  data-dismiss="modal">Cancel</button> *@
+                        <button type="button" class="btn btn-secondary" onclick="$('#remarksModal').modal('hide')">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+         <!--Timecard-->
+        <div class="card shadow-sm rounded" style="width: 402px;height:301px;top:-15px;background-color:#575357" id="Timecard">
+            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Timecard</h5>
+            </div>
+        
+           
+            <!-- Navigation and Dropdowns -->
+            @* <div class="card shadow-sm mb-2" style="margin-top:2px;width:400px">
+                <div class="card-body py-2" style="margin-top:-25px">
+                    <!-- Month/Year Dropdowns -->
+                    <form method="get" asp-action="TimecardAdvanced" asp-controller="Home"
+                        class="d-flex gap-2 align-items-center" style="margin-top:20px;margin-bottom:-8px">
+                        <!-- Month Dropdown -->
+                        <select name="month" class="form-select form-select-sm ">
+                            @for (int m = 1; m <= 12; m++)
+                            {
+                                var selected = (m == month) ? "selected" : "";
+                                if (selected == "")
+                                {
+                                    <option value="@m">@CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)</option>
+                                }
+                                else
+                                {
+                                    <option value="@m" selected>@CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)</option>
+                                }
+                            }
+                        </select>
+
+                        <!-- Year Dropdown -->
+                        <select name="year" class="form-select form-select-sm">
+                            @foreach (var y in years)
+                            {
+                                var selected = (y == year) ? "selected" : "";
+                                if (selected == "")
+                                {
+                                    <option value="@y">@y</option>
+                                }
+                                else
+                                {
+                                    <option value="@y" selected>@y</option>
+                                }
+                            }
+                        </select>
+
+                        <button type="submit" class="btn btn-sm btn-primary">Go</button>
+                    </form>
+
+
+                </div>
+            </div> *@
+
+            <div class="card shadow-sm" style="margin-top:-8px;">
+                @* <div class="card-header text-center bg-primary text-white py-1" style="width:400px"> *@
+
+                   @*  <h5 class="mb-0 d-flex justify-content-between align-items-center">
+                        <a asp-action="TimecardAdvanced" asp-controller="Home"
+                           asp-route-year="@prevDate.Year"
+                           asp-route-month="@prevDate.Month"
+                           class="btn btn-sm btn-outline-light px-2 py-0">&laquo;</a>
+
+                        <span>@date.ToString("MMMM yyyy")</span>
+
+                        <a asp-action="TimecardAdvanced"  asp-controller="Home"
+                           asp-route-year="@nextDate.Year"
+                           asp-route-month="@nextDate.Month"
+                           class="btn btn-sm btn-outline-light px-2 py-0">&raquo;</a>
+                    </h5> *@
+                @* </div> *@
+
+                <div class="card-body p-0" style="width: 400px;">
+                    <div style="overflow-x: auto;">
+                        <table class="table table-sm table-bordered text-center mb-0" style="height:272px">
+                            <thead>
+                                <tr>
+                                    @foreach (var day in Enum.GetValues(typeof(DayOfWeek)))
+                                    {
+
+                                        <th>@CultureInfo.CurrentCulture.DateTimeFormat.AbbreviatedDayNames[(int)day]</th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    int dayCounter = 1;
+                                    bool started = false;
+                                }
+                                @for (int week = 0; dayCounter <= daysInMonth;)
+                                {
+                                    <tr>
+                                        @for (int i = 0; i < 7; i++)
+                                        {
+                                            if (!started && i == firstDayOfWeek)
+                                                started = true;
+
+                                            if (started && dayCounter <= daysInMonth)
+                                            {
+                                                var currentDate = new DateTime(year, month, dayCounter);
+                                                //var entry = Model.FirstOrDefault(t => Convert.ToDateTime(t.LogDate) == currentDate.Date);
+                                                var entry = Model.Where(d => d.LogDate == currentDate.Date.ToString("dd-MM-yyyy")).ToList();
+                                            
+                                                string? remark = entry != null && entry.Count > 0 ? entry[0].Remakrs : string.Empty;
+                                                string cellClass = "calendar-cell";
+                                                if (remark.Contains("Public Holiday"))
+                                                {
+                                                    cellClass += " bg-holiday";
+                                                }
+                                                else if (remark.Contains("Absent"))
+                                                {
+                                                    cellClass += " bg-absent";
+                                                }
+                                                else if (remark.Contains("Late In"))
+                                                {
+                                                    cellClass += " bg-late";
+
+                                                }
+                                                else if (remark.Contains("On Time"))
+                                                {
+                                                    cellClass += " bg-present";
+                                                }
+                                                else if (remark.Contains("Leave"))
+                                                {
+                                                    cellClass += " bg-leave";
+                                                }
+                                                    
+                                                <td class="@cellClass"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-html="true"
+                                                    data-bs-placement="top"
+                                                    title="Login: @(entry.Any() ? entry[0].InTime.ToString("HH:mm") : "--")<br/>
+                                                    Logout: @(entry.Any() ? entry[0].OutTime.ToString("HH:mm") : "--")<br/>
+                                                    Remarks: @(entry.Any() ? entry[0].Remakrs : "--")">
+
+                                                    <strong>@dayCounter</strong><br />
+                                                    @if (entry != null)
+                                                    {
+                                                        @*  <span hidden>Login: @(entry[0].InTime.ToString("HH:mm") ?? "--")</span>
+
+                                                    <br />
+                                                    <span hidden>Logout: @(entry[0].OutTime.ToString("HH:mm") ?? "--")</span>
+                                                    <br /> *@
+                                                        <span>@(entry[0].Remakrs)</span>
+                                                    }
+                                                    else
+                                                    {   
+                                                        <span class="text-danger">Absent</span>
+                                                    }
+                                                                                        </td>
+                                                dayCounter++;
+                                            }
+                                            else
+                                            {
+                                                <td></td>
+                                            }
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+      </div>
+    }
+</div>
+
+<script>
+    $('#remarksModal').on('hide.bs.modal', function (e) {
+        e.preventDefault();
+    });
+</script>
+
+@* <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="~/js/GenericFunction.js"></script> *@
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.6.2/js/bootstrap.min.js"></script>
+
+<script>
+
+    $('#btnRefreshDept').click(function () {
+        debugger;
+        var url= '/Home/refreshDepartment'; // Replace with your controller route
+        $.ajax({
+            url: '@Url.Action("refreshDepartment", "Home")',
+            type: 'GET',
+            async: true,
+            success: function (data) {
+                debugger
+                $('#deptCard').empty()
+
+                $.each(data.data, function (index, item) {
+                    $('#deptCard').append('<li class="list-group-item d-flex justify-content-between align-items-center">' +
+                        '<div>' +
+                        '<strong>' + item.sName + '</strong><br />' +
+                        '<small>' + item.sName + '-' + item.sCode + '</small>' +
+                        '</div>' +
+                        '</li>');
+                });
+                debugger;
+            },
+            error: function (error) {
+                alert('Failed to refresh department list.');
+            }
+        });
+    });
+
+</script>
+
+<script>
+    setupRefreshButton('btnRefreshDept', 'refreshIconDept');
+</script>
+
+<script>
+    let selectedAction = '';
+    let selectedLeaveId = 0;
+
+    $('body').on('click', '.btnApprove, .btnReject', function () {
+        debugger;
+        selectedLeaveId = $(this).data('id');
+        selectedAction = $(this).hasClass('btnApprove') ? 'Approve' : 'Reject';
+
+        $('#modalLeaveId').val(selectedLeaveId);
+        $('#modalActionType').val(selectedAction);
+        $('#modalRemarks').val('');
+        $('#remarksModal').modal('show');
+    });
+
+    $('#submitRemarks').click(function () {
+        var id = $('#modalLeaveId').val();
+        var action = $('#modalActionType').val();
+        var remarks = $('#modalRemarks').val();
+
+        if (!remarks.trim()) {
+            alert("Remarks are required.");
+            return;
+        }
+
+        $.post(`@Url.Action("HandleLeaveAction", "LeaveApprovalManual")`, {
+            id: id,
+            actionType: action,
+            remarks: remarks
+        }, function (res) {
+            if (res.success) {
+                alert(`Leave ${action}d successfully.`);
+                $('#remarksModal').modal('hide');
+                @* $('#btnDisplay').click(); // Reload table *@
+                // Optionally, you can refresh the leave alert table here
+                location.reload(); // Reload the page to reflect changes
+
+            } else {
+                alert(res.message);
+            }
+        });
+    });
+</script>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const cells = document.querySelectorAll(".calendar-cell");
+
+        // Initialize tooltip on all cells
+        cells.forEach(cell => {
+            const tooltip = new bootstrap.Tooltip(cell, {
+                trigger: 'manual', // We will handle showing manually
+                placement:'auto',
+                html: true
+            });
+
+            cell.addEventListener("click", function (e) {
+                // Hide all other tooltips
+                document.querySelectorAll('.calendar-cell').forEach(el => {
+                    bootstrap.Tooltip.getInstance(el)?.hide();
+                });
+            debugger
+
+            var rem= cell.querySelector("span:not([hidden])").textContent
+            if (rem !== 'Absent' && rem !== 'Public Holiday' && rem !== 'Leave')
+            {
+                // Show clicked one
+                tooltip.show();
+            }
+
+            // Hide again after 3 seconds
+            setTimeout(() => tooltip.hide(), 3000);
+            });
+        });
+    });
+</script>

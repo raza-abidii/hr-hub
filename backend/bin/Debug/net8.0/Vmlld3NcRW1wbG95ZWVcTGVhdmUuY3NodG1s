@@ -1,0 +1,506 @@
+﻿@{
+    var months = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.MonthNames;
+}
+@{
+    // ViewBag.Employees is assumed to be a List of objects with "Name" and "Code"
+    var employeesJson = Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Employees);
+}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/Style.css">
+    <style>
+        .flex {
+            display: flex;
+            gap: 16px;
+        }
+
+        input:invalid {
+            border: 2px solid red;
+        }
+
+    </style>
+
+    <style>
+        #myTable {
+            border: 1px solid #dee2e6;
+        }
+
+            #myTable th, #myTable td {
+                border: 1px solid #dee2e6;
+                vertical-align: middle;
+                text-align: center;
+            }
+
+            #myTable th {
+                background-color: #616062;
+                font-size: 12px;
+                color: #fff;
+            }
+
+            #myTable tr:hover {
+                background-color: #f1f1f1;
+            }
+
+        .table thead th {
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .form-control.leave-used {
+            max-width: 100px;
+            margin: 0 auto;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h2 class="text-center d-flex justify-content-center align-items-center gap-2">
+            Leave Application
+            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" fill="#E3F2FD" stroke="#2196F3" stroke-width="1.5" />
+                <line x1="3" y1="10" x2="21" y2="10" stroke="#2196F3" stroke-width="1.5" />
+                <path d="M9 14l2 2 4-4" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+
+            
+
+        </h2>
+        <div class="form-group">
+            <label for="employee">Employee Name</label>
+            <select id="employee" name="employee" class="form-control">
+                <option value="">-- Select Employee --</option>
+                @foreach (var emp in ViewBag.Employees)
+                {
+                    <option value="@emp.iMasterid">@emp.sEmployeeName</option>
+                }
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="datefrom">Date From</label>
+            <input id="datefrom" name="datefrom" type="date" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label for="dateto">Date To</label>
+            <input id="dateto" name="dateto" type="date" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label for="noofdays">Total Days</label>
+            <input id="noofdays" name="noofdays" type="number" class="form-control" />
+        </div>
+
+        <div class="form-group-2 col-span-1">
+            <label class="bold-label">Leave Avail</label><br />
+            <label><input type="radio" name="halfday" value="HalfDay" /> Half Day</label>
+            <label><input type="radio" name="fullday" value="FullDay" checked /> Full Day</label>
+        </div>
+        <div class="form-group">
+            <label for="reason">Reason<span style="color: red;">*</span></label>
+            <textarea id="reason" name="reason" class="form-control" required
+                      placeholder="Enter genuine reason"></textarea>
+        </div>
+        <br />
+        <button type="button" id="btnload" class="btn btn-outline-primary">
+            Load
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#007bff">
+                <path d="M12 16l-6-6h4V4h4v6h4l-6 6z" />
+            </svg>
+
+        </button>
+
+        <div class="table-responsive">
+            <table id="myTable" class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th> Sno</th>
+                        <th> Leave Type</th>
+                        <th> Total Days</th>
+                        <th> Leave Days Per Month</th>
+                        <th> Leave Taken Current Month</th>
+                        <th> Total Leave Taken</th>
+                        <th> Leave Balance</th>
+                        <th> Leave Applied</th>
+                        <th hidden> LeaveTypeId</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var intRow = 1;
+                        var ispaid = "";
+                        foreach (var leave in ViewBag.Leave)
+                        {
+
+                            <tr>
+                                <td>@intRow</td>
+                                <td>@leave.sLeaveType</td>
+                                <td>@leave.iTotalDays</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+
+                                <td>
+                                    <input type="number" id="leaveused" name="leaveused"
+                                           class="form-control leave-used" />
+                                </td>
+                                <td hidden>@leave.iMasterid</td>
+                            </tr>
+                            intRow = intRow + 1;
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <br />
+        <button type="button" id="btnsummit" class="btn btn-outline-primary">
+            Submit
+            <svg width="25" height="25" color="green">
+                <use xlink:href="#icon-save"></use>
+            </svg>
+        </button>
+    </div>
+
+</body>
+</html>
+
+@* <script src="/js/GenericFunction.js"></script> *@
+<script>
+    $(document).ready(function () {
+        $('#employee').select2({
+            placeholder: "Select employee",
+            allowClear: true
+        });
+        focusonselectcontrol("#employee");
+        $("#employee").focus();
+
+        
+
+    });
+
+    function formatDateForInput(date) {
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${year}-${month}-${day}`;
+    }
+
+    const today = new Date();
+    const formattedDate = formatDateForInput(today);
+
+    $('#datefrom').val(formattedDate);
+    $('#dateto').val(formattedDate);
+
+    // var today = new Date().toISOString().split('T')[0];
+    // $('#datefrom').val(today);
+    // $('#dateto').val(today);
+
+
+    $('#btnsummit').click(function () {
+        var employee = $('#employee').val();
+        var datefrom = $('#datefrom').val();
+        var dateto = $('#dateto').val();
+        var noofdays = $('#noofdays').val();
+        var reason = $('#reason').val();
+        var fullday = $('input[name="fullday"]:checked').val();
+        var halfday = $('input[name="halfday"]:checked').val();
+        var isfullday=0;
+
+        if(fullday=="FullDay")
+            isfullday=1;
+
+        if (employee === "" || datefrom === "" || dateto === "" || noofdays === "" || reason === "") {
+            alert("Please fill all fields.");
+            return;
+        }
+        var leaveUsed = [];
+        $('#myTable tbody tr').each(function () {
+            var leaveTypeId = $(this).find('td:eq(8)').text().trim();
+            var usedDays = $(this).find('.leave-used').val() || 0;
+            leaveUsed.push({ LeaveTypeId: leaveTypeId, UsedDays: usedDays });
+        });
+        if (leaveUsed.length === 0) {
+            alert("Please enter leave used for at least one leave type.");
+            return;
+        }
+        if(validateLeaveUsageAfterSave()==false)
+        {
+            //alert("Utilized leave cannot exceed Taken leave.");
+            return;
+        }
+
+        var requestData=JSON.stringify({
+                iEmployee: employee,
+                datefrom: datefrom,
+                dateto: dateto,
+                noofdays: noofdays,
+                reason: reason,
+                isfullday: isfullday,
+                leaveUsed: leaveUsed
+            });
+        debugger;
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("LeaveApply", "LeaveApplication")',
+            data: requestData,
+            contentType: 'application/json',
+            success: function (response) {
+                debugger;
+                alert(response.message);
+                if(response.success===true)
+                    location.reload(); // Reload the page or redirect as needed
+            },
+            error: function (xhr, status, error) {
+                alert("Error applying leave. Please try again.");
+            }
+        });
+    });
+
+</script>
+
+<script>
+
+    $('#btnload').click(function () {
+            debugger;
+            var employeeId = $('#employee').val();
+            var toDate = $('#dateto').val();
+            if (employeeId) {
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("GetLeaveDetail", "LeaveApplication")',
+                    data: { employeeId: employeeId,dDate : toDate },
+                    success: function (response) {
+
+                        if(response.success==true)
+                        {
+
+                            $('#myTable').find('input, select, textarea').attr('disabled', true);
+                            // Clear the table before appending new data
+                            $('#myTable tbody').empty();
+                            // Append the new data to the table
+                            $.each(response.data, function (index, leave) {
+                                var row = '<tr>' +
+                                    '<td>' + (index + 1) + '</td>' +
+                                    '<td>' + leave.sLeaveName + '</td>' +
+                                    '<td>' + leave.iTotalDays + '</td>' +
+                                    '<td>' + leave.ileaveDaysPermonth + '</td>' +
+                                    '<td>' + leave.leaveTakenCurrentMonth + '</td>' +
+                                    '<td>' + leave.totalLeaveTaken + '</td>' +
+                                    '<td>' + leave.balance + '</td>' +
+                                    '<td><input type="number" id="leaveused" name="leaveused" class="form-control leave-used" /></td>' +
+                                    '<td style="display:none">' + leave.iLeaveType + '</td>' +
+                                    '</tr>';
+                                $('#myTable tbody').append(row);
+                            });
+
+                            colorTable();
+                        }
+                        else
+                        {
+                            alert(response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert("Error fetching leave data. Please try again.");
+                    }
+                });
+            }
+        });
+
+        function colorTable() {
+            $('#myTable tbody tr').each(function () {
+                var $row = $(this);
+                var balance = parseFloat($row.find('td:eq(6)').text().trim());
+                var used = parseFloat($row.find('.leave-used').val()) || 0;
+                if (used > balance) {
+                    $row.css('background-color', 'red');
+                } else if (used === balance) {
+                    $row.css('background-color', 'green');
+                } else {
+                    $row.css('background-color', '');
+                }
+
+                //Max Performance Month
+                var maxpermonth = parseFloat($row.find('td:eq(3)').text().trim()) || 0;
+                var takencurrentmonth = parseFloat($row.find('td:eq(4)').text().trim());
+                if(maxpermonth!=0 && maxpermonth===takencurrentmonth)
+                {
+
+                    $row.find('td:eq(4)').css('background-color', 'red');
+                    //set input particular column of row to disabled
+
+                    $row.find('.leave-used').attr('disabled', true);
+
+
+                }
+            });
+        }
+</script>
+
+<script>
+
+    function calculateDays() {
+           var fromDate = new Date($('#datefrom').val());
+           var toDate = new Date($('#dateto').val());
+           var isHalfDay = $('input[name="leaveavail"]:checked').val() === "HalfDay";
+
+           if (!isNaN(fromDate) && !isNaN(toDate) && toDate >= fromDate) {
+               if (isHalfDay && fromDate.toDateString() === toDate.toDateString()) {
+                   $('#noofdays').val(0.5);
+               } else {
+                   var timeDiff = toDate.getTime() - fromDate.getTime();
+                   var dayDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
+                   $('#noofdays').val(dayDiff);
+               }
+           } else {
+               $('#noofdays').val('');
+           }
+       }
+        function calculateDays() {
+        var fromDate = new Date($('#datefrom').val());
+        var toDate = new Date($('#dateto').val());
+        var isHalfDay = $('input[name="leaveavail"]:checked').val() === "HalfDay";
+
+        if (!isNaN(fromDate) && !isNaN(toDate) && toDate >= fromDate) {
+            // If it's a half day and on the same date
+            if (isHalfDay && fromDate.toDateString() === toDate.toDateString()) {
+                $('#noofdays').val(0.5);
+            } else {
+                var count = 0;
+                var currentDate = new Date(fromDate);
+
+                while (currentDate <= toDate) {
+                    if (currentDate.getDay() !== 0) { // 0 = Sunday
+                        count++;
+                    }
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+
+                $('#noofdays').val(count);
+            }
+        } else {
+            $('#noofdays').val('');
+        }
+    }
+
+       // Trigger calculation on changes
+       $('#datefrom, #dateto').on('change', calculateDays);
+       $('input[name="leaveavail"]').on('change', calculateDays);
+
+</script>
+
+<script>
+     $(document).on('input', '.leave-used', function () {
+        //debugger;
+        var $row = $(this).closest('tr');
+        var balance = $row.find('td:eq(6)').text().trim();
+        var used = parseFloat($(this).val()) || 0;
+        var leavdayspermonth= $row.find('td:eq(3)').text().trim()||0;
+        var totalTaken=$row.find('td:eq(5)').text().trim()||0;
+        var totalTakenCurrentMonth=$row.find('td:eq(4)').text().trim()||0;
+        if(parseInt( leavdayspermonth)>0)
+        {
+            if(parseInt(totalTakenCurrentMonth) +parseInt( used )>parseInt( leavdayspermonth))
+            {
+                alert("Leave Exceeding the Max Leave Per month criteria");
+                $(this).val(''); // Clear the invalid value
+                return;
+            }
+        }
+
+        if (used > balance) {
+            alert("Utilized leave cannot exceed balance leave.");
+            $(this).val(''); // Clear the invalid value
+            return;
+        }
+
+        if(validateLeaveUsage()==false)
+        {
+            $(this).val(''); // Clear the invalid value
+            return;
+        }
+    });
+
+    function validateLeaveUsage() {
+        //debugger;
+        var totalNoOfDays = parseFloat($('#noofdays').val()) || 0;
+        var totalUsed = 0;
+        var isValid = true;
+        var totalUsed = getTotalLeaveUsed();
+        var totalBalance = getTotalBalance();
+
+        if (totalUsed > totalNoOfDays) {
+            alert("Utilized leave cannot exceed applied leave.");
+            $(this).val('');
+            isValid = false;
+            return false; // exit loop
+        }
+
+
+        if (isValid && (totalUsed > totalNoOfDays || totalUsed==0)) {
+            alert("Either Leave is not selected or Total utilized leave cannot be greater than total leave days.");
+            // Optional: highlight fields or clear all
+            return false;
+        }
+
+        return true;
+    }
+
+    function validateLeaveUsageAfterSave() {
+        //debugger;
+        var totalNoOfDays = parseFloat($('#noofdays').val()) || 0;
+        var totalUsed = 0;
+        var isValid = true;
+        var totalUsed = getTotalLeaveUsed();
+        var totalBalance = getTotalBalance();
+
+        if (totalUsed > totalNoOfDays) {
+            alert("Utilized leave cannot exceed applied leave.");
+            $(this).val('');
+            isValid = false;
+            return false; // exit loop
+        }
+
+
+        if (isValid && (totalUsed > totalNoOfDays || totalUsed==0)) {
+            alert("Either Leave is not selected or Total utilized leave cannot be greater than total leave days.");
+            // Optional: highlight fields or clear all
+            return false;
+        }
+        if(totalUsed != totalNoOfDays)
+        {
+            alert("Leave Applied must be same as Leave Utilized");
+            // Optional: highlight fields or clear all
+            return false;
+        }
+        return true;
+    }
+
+    function getTotalBalance() {
+        var totalBalance = 0;
+        $('#myTable tbody tr').each(function () {
+            var balanceText = $(this).find('td:eq(3)').text().trim();
+            var balance = parseFloat(balanceText);
+            if (!isNaN(balance)) {
+                totalBalance += balance;
+            }
+        });
+        return totalBalance;
+    }
+
+    function getTotalLeaveUsed() {
+        var totalUsed = 0;
+        $('.leave-used').each(function () {
+            var used = parseFloat($(this).val());
+            if (!isNaN(used)) {
+                totalUsed += used;
+            }
+        });
+        return totalUsed;
+    }
+</script>

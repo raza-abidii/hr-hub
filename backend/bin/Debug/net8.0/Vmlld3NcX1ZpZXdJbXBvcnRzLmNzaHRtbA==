@@ -1,0 +1,3 @@
+﻿@using EMSSolution
+@using EMSSolution.Models
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers

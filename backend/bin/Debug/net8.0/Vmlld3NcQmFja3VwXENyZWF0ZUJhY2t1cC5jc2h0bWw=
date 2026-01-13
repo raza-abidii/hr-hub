@@ -1,0 +1,52 @@
+﻿@{
+    ViewData["Title"] = "Database Backup";
+}
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<br/>
+<h4 class="text-center d-flex justify-content-center align-items-center gap-2">
+    Database Backup
+    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24">
+        <path fill="#60A5FA" d="M19 18H6a4 4 0 010-8 5 5 0 019.9-1.1A4 4 0 0119 18z" />
+        <path fill="#34D399" d="M12 13v5m0 0l-3-3m3 3l3-3" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+</h4>
+
+<div class="container">
+    <button type="submit" id="summit" class="btn btn-primary">Create Backup</button>
+</div>
+
+<div id="result" class="mt-3"></div>
+
+
+<link rel="stylesheet" href="~/css/Style.css">
+<script>
+
+    $(document).ready(function () {
+        debugger;
+        
+        $("#summit").click(function (e) {
+            debugger;
+            $.ajax
+                ({
+                    url: '@Url.Action("getBackup", "Backup")',
+                    type: "GET",
+                    cashe: true,
+                    success: function (res) {
+                        if (res.success) {
+                            $("#result").html(
+                                `<div class="container"> <div class="alert alert-success">
+                                    Backup created successfully.
+                                    <a href="${res.downloadUrl}" class="btn btn-link">Download Backup</a>
+                                </div></div>`);
+                        } else {
+                            $("#result").html(
+                                `<div class="alert alert-danger">Error: ${res.message}</div>`);
+                        }
+                    }
+                })
+            })
+        });
+</script>
+
+

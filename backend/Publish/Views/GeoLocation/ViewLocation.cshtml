@@ -1,0 +1,94 @@
+﻿@{
+    ViewData["Title"] = "Your Current Location";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta  charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        #map {
+            height: 400px;
+            width: 100%;
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+
+        .info-box {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+            .info-box span {
+                font-weight: bold;
+            }
+
+        .error-message {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+
+</head>
+<body>
+    <div class="info-box">
+        <div>Latitude: <span id="latitude">Loading...</span></div>
+        <div>Longitude: <span id="longitude">Loading...</span></div>
+        <div id="error" class="error-message"></div>
+    </div>
+
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <script>
+        function initMap(lat, lng) {
+            var map = L.map('map').setView([lat, lng], 15);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            L.marker([lat, lng]).addTo(map)
+                .bindPopup("You are here!")
+                .openPopup();
+        }
+
+        window.onload = function () {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function (position) {
+                        var lat = position.coords.latitude;
+                        var lng = position.coords.longitude;
+
+                        document.getElementById("latitude").innerText = lat.toFixed(6);
+                        document.getElementById("longitude").innerText = lng.toFixed(6);
+
+                        initMap(lat, lng);
+                    },
+                    function (error) {
+                        document.getElementById("error").innerText = "Error: " + error.message;
+                        document.getElementById("latitude").innerText = "-";
+                        document.getElementById("longitude").innerText = "-";
+                    }
+                );
+            } else {
+                document.getElementById("error").innerText = "Geolocation is not supported by this browser.";
+            }
+        };
+    </script>
+
+</body>
+</html>

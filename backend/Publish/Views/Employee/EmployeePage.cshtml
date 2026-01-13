@@ -1,0 +1,1165 @@
+﻿@model List<EMSSolution.Models.Employee>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <title>Add New Employee</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: #fff;
+            padding: 20px;
+            max-width: 800px;
+            margin: 30px auto;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        .containerimage {
+            background: #fff;
+            padding: 60px;
+            max-width: 160px;
+            margin: 0px auto;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #ccc;
+            margin-bottom: 20px;
+        }
+
+            .tabs button {
+                flex: 1;
+                padding: 10px;
+                background: #eee;
+                border: none;
+                cursor: pointer;
+                font-weight: bold;
+            }
+
+                .tabs button.active {
+                    background: #ddd;
+                }
+
+        .tab-content {
+            display: none;
+        }
+
+            .tab-content.active {
+                display: block;
+            }
+
+        .form-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2px 20px;
+        }
+
+        .form-group {
+            flex: 1;
+            padding-right: 20px;
+        }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 5px;
+            }
+
+            .form-group input, .form-group select {
+                width: 100%;
+                padding: 5px;
+            }
+
+                .form-group input[type="radio"],
+                .form-group input[type="checkbox"] {
+                    width: auto;
+                    margin-right: 5px;
+                }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+            .checkbox-group label {
+                margin-right: 20px;
+            }
+
+        .form-actions {
+            text-align: right;
+            margin-top: 20px;
+        }
+
+            .form-actions button {
+                padding: 8px 20px;
+                margin-left: 10px;
+            }
+
+        .radio-inline-group {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+            .radio-inline-group label {
+                font-weight: 600;
+                white-space: nowrap;
+            }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+
+        .flex {
+            display: flex;
+            gap: 16px;
+        }
+
+        body {
+            background-color: #cccccc;
+        }
+
+        input:invalid {
+            border: 2px solid red;
+        }
+    </style>
+
+
+</head>
+<body>
+
+    <div class="container">
+
+        @* <div style="width: 100px; height: 100px; border: 2px dashed #ccc; display: flex; justify-content: center; align-items: center; overflow: hidden; margin: 20px auto;">
+                <img id="photoPreview" src="#" alt="Photo Preview" style="display:none; max-width:100px; max-height:100px;" />
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <input type="file" id="photoInput" name="photo" accept="image/*" onchange="previewPhoto()" />
+            </div> *@
+        <h2>Add New Employee</h2>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="openTab('company')">Company Details</button>
+            <button class="tab-button" onclick="openTab('personal')">Personal Details</button>
+            <button class="tab-button" onclick="openTab('LeaveAllocation')">Leave Alocation</button>
+        </div>
+
+        <!-- Company Details Tab -->
+        <div id="company" class="tab-content active">
+            <div style="width: 100px; height: 100px; border: 2px dashed #ccc; display: flex; justify-content: center; align-items: center; overflow: hidden; margin: 20px auto;">
+                <img id="photoPreview" src="#" alt="Photo Preview" style="display:none; max-width:100px; max-height:100px;" />
+            </div>
+                      
+            <input type="file" id="photoInput" name="photo" accept="image/*" style="display: none;">
+           @*  <button id="selectButton" style="margin-left:300px">Select Photo</button>
+            <span id="fileNameDisplay"></span> *@
+            <div class="text-center mb-3">
+                <button id="selectButton" class="btn btn-primary">Select Photo</button>
+                <button type="button" id="removePhotoButton" class="btn btn-danger ms-2">Remove Photo</button>
+            </div>
+            <span id="fileNameDisplay"></span>
+
+            <div class="form-grid">
+
+                @*<div class="form-group">
+                    <label for="machineCode">Machine Code:</label>
+                    <input type="text" id="machineCode" name="machineCode">
+                </div> *@
+                <div class="form-group">
+                    <label for="employeeCode">Employee Code <span style="color:red">*</span></label>
+                    <input asp type="text" id="employeeCode" name="employeeCode">
+                </div>
+
+                <div class="form-group">
+                    <label for="employeeName">Employee Name <span style="color:red">*</span></label>
+                    <input type="text" id="employeeName" name="employeeName">
+                </div>
+                <div class="form-group">
+                    <label for="hireDate">Hire Date:</label>
+                    <input type="date" id="hireDate" name="hireDate">
+                </div>
+
+                <div class="form-group">
+                    <label for="gender">Gender:</label>
+                    <select id="gender" name="gender">
+                        <option value="">Select</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Female">Others</option>
+                    </select>
+                </div>
+                @* <div class="form-group radio-inline-group">
+                    <label>Gender:</label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="male" name="Input.Gender" value="" checked />
+                            <label for="user">Male</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="female" name="Input.Gender" value="" />
+                            <label for="admin">Female</label>
+                        </div>
+
+                    </div>
+                </div> *@
+
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="category">Category:</label>
+                    <select id="category" name="category" class="form-control">
+                        <option value="">Select</option>
+                        @foreach (var item in ViewBag.Categories)
+                        {
+                            <option value="@item.iMasterid">@item.sName</option>
+                        }
+                    </select>
+
+                </div>
+                <div class="form-group">
+                    <label for="designation">Designation:</label>
+                    <select id="designation" name="designation">
+                        <option value="">Select</option>
+                        @foreach (var item in ViewBag.Designations)
+                        {
+                            <option value="@item.iMasterid">@item.sName</option>
+                        }
+
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="department">Department:</label>
+                    <select id="department" name="department">
+                        <option value="">Select</option>
+                        @foreach (var item in ViewBag.Departments)
+                        {
+                            <option value="@item.iMasterid">@item.sName</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="shiftName">Shift Name:</label>
+                    <select id="shiftName" name="shiftName">
+                        <option value="">Select</option>
+                        @foreach (var item in ViewBag.Shifts)
+                        {
+                            <option value="@item.iMasterid">@item.sShiftName</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="pan">Pan No:</label>
+                    <input type="text" id="pan" name="pan" oninput="limitInput(this,10)">
+                </div>
+                <div class="form-group">
+                    <label for="aadhar">Aadhar No:</label>
+                    <input type="number" id="aadhar" name="aadhar" oninput="limitInput(this,12)">
+                </div>
+                <div class="form-group">
+                    <label for="passport">Passport No:</label>
+                    <input type="text" id="passport" name="passport" oninput="limitInput(this,16)">
+                </div>
+                <div class="form-group">
+                    <label for="reporting">Reporting To:</label>
+                    <select id="reporting" name="reporting">
+                        <option value="">Select</option>
+                        @foreach (var item in ViewBag.Reporting)
+                        {
+                            <option value="@item.iMasterid">@item.sEmployeeName</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="mt-4">
+                <div class="checkbox-group">
+                    <label><input type="checkbox" name="otStatus" id="otStatus"> OT Status</label>
+                    <label><input type="checkbox" name="employeeResigned" id="employeeResigned"> Employee Resigned</label>
+                    <label><input type="checkbox" name="autoShift" id="autoShift"> Auto Shift</label>
+                    <label><input type="checkbox" name="permanent" id="permanent"> Permanent</label>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Personal Details Tab -->
+        <div id="personal" class="tab-content">
+
+            @* <div class="form-row"> *@
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="dob">Date of Birth:</label>
+                    <input type="date" id="dob" name="dob">
+                </div>
+                <div class="form-group">
+                    <label for="country">Country:</label>
+                    <select id="country" name="country" style="width: 100%">
+                        <option value="">Select</option>
+                        @foreach (var item in ViewBag.Countries)
+                        {
+                            <option value="@item.Id">@item.CountryName</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="state">State:</label>
+                    <select id="state" name="state" style="width: 100%">
+                        <option value="">Select</option>
+                        @foreach (var item in ViewBag.States)
+                        {
+                            <option value="@item.Id">@item.StateName</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="city">City:</label>
+                    <select id="city" name="city" style="width: 100%">
+                        <option value="">Select</option>
+                        @foreach (var item in ViewBag.Cities)
+                        {
+                            <option value="@item.Id">@item.CityName</option>
+                        }
+                    </select>
+                </div>
+                @* <div class="form-row"> *@
+
+                <div class="form-group">
+                    <label for="phone">Phone Number:</label>
+                    <input type="tel" id="phone" name="phone">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email">
+                </div>
+
+
+                @* <div class="form-row"> *@
+                <div class="form-group">
+                    <label for="address1">Address1:</label>
+                    <input type="text" id="address1" name="address1">
+                </div>
+                <div class="form-group">
+                    <label for="address2">Address2:</label>
+                    <input type="text" id="address2" name="address2">
+                </div>
+                <div class="form-group">
+                    <label for="landmark">Landmark:</label>
+                    <input type="text" id="landmark" name="landmark">
+                </div>
+                <div class="form-group">
+                    <label for="pincode">Pincode:</label>
+                    <input type="text" id="pincode" name="pincode">
+                </div>
+                <div class="form-group">
+                    <label for="maritalStatus">Marital Status:</label>
+                    <select id="maritalStatus" name="maritalStatus" style="width:100%">
+                        <option value="">Select</option>
+                        <option value="single">Single</option>
+                        <option value="married">Married</option>
+                        <option value="married">Widowed</option>
+                        <option value="married">Divorced</option>
+                        <option value="married">Separated</option>
+                    </select>
+                </div>
+
+                @* <div class="form-row"> *@
+                <div class="form-group">
+                    <label for="emergencyContact">Emergency Contact:</label>
+                    <input type="tel" id="emergencyContact" name="emergencyContact">
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Leave Allocation Tab -->
+        <div id="LeaveAllocation" class="tab-content">
+            <div class="form-grid">
+                <table id="leaveTable" class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Select</th>
+                            <th>Leave Type</th>
+                            <th>Max Per Month</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in ViewBag.LeaveTypes)
+                        {
+                            <tr>
+                                <td>
+                                    <input type="checkbox" name="selectedLeaves" value="@item.iMasterid" />
+                                </td>
+                                <td>@item.sLeaveType</td>
+                                <td>
+                                    <input type="number" name="permonth" id="permonth" />
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <div class="flex">
+                <button id="btnsummit" type="submit" class="btn btn-outline-primary" style="width:155px" accesskey="s">Save</button>
+                <button id="btnrefresh" type="button" class="btn btn-outline-primary" style="width:155px" accesskey="r">Refresh</button>
+                <button id="btnDelete" type="button" class="btn btn-outline-primary" style="width:120px" accesskey="l">Delete</button>
+            </div>
+        </div>
+
+
+
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+            <input type="text" id="searchBox" class="col-4 display: flex margin-right" placeholder="Search..." onkeyup="searchTable()" />
+        </div>
+
+        <div class="table-responsive">
+            <table id="myTable" class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th> Sno</th>
+                        <th> Employee Code</th>
+                        <th> Employee Name</th>
+                        <th hidden> Masterid</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var intRow = 1;
+
+                        foreach (var entry in Model)
+                        {
+
+                            <tr>
+                                <td>@intRow</td>
+                                <td>@entry.sEmployeeCode</td>
+                                <td>@entry.sEmployeeName</td>
+                                <td hidden>@entry.iMasterid</td>
+                            </tr>
+                            intRow = intRow + 1;
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</body>
+</html>
+
+
+<script>
+    var masterid=0;
+    var isEditing=false;
+    var currentRow;
+
+    $(document).ready(function() {
+        let openedByTab = false;
+        masterid=0;
+        isEditing==false;
+        //debugger;
+        var today = new Date();
+        var formattedDate = today.toISOString().split('T')[0];  // formats to yyyy-mm-dd
+        $('#hireDate').val(formattedDate);
+        $('#dob').val(formattedDate);
+
+        $('#category').select2({
+            placeholder: "Select category",
+            allowClear: true
+        });
+
+        $('#designation').select2({
+            placeholder: "Select designation",
+            allowClear: true
+        });
+        $('#department').select2({
+            placeholder: "Select department",
+            allowClear: true
+        });
+        $('#shiftName').select2({
+            placeholder: "Select shift",
+            allowClear: true
+        });
+        $('#country').select2({
+            placeholder: "Select country",
+            allowClear: true
+
+        });
+        $('#state').select2({
+            placeholder: "Select state",
+            allowClear: true
+        });
+        $('#city').select2({
+            placeholder: "Select city",
+            allowClear: true
+        });
+        $('#maritalStatus').select2({
+            placeholder: "Select city",
+            allowClear: true
+        });
+        $('#reporting').select2({
+            placeholder: "Select Reporting",
+            allowClear: true
+        });
+
+        focusonselectcontrol('#category');
+        focusonselectcontrol('#designation');
+        focusonselectcontrol('#department');
+        focusonselectcontrol('#shiftName');
+        focusonselectcontrol('#country');
+        focusonselectcontrol('#state');
+        focusonselectcontrol('#city');
+        focusonselectcontrol('#maritalStatus');
+        focusonselectcontrol('#reporting');
+
+        clearControl();
+    });
+
+
+    function focusonselectcontrol1(ctrl) {
+
+        const $select = $( ctrl );
+
+        // Automatically open on focus
+        const $container = $select.next('.select2-container');
+
+        $container.find('.select2-selection').on('focus', function () {
+          $select.select2('open');
+        });
+
+        $select.on('select2:open', function () {
+            setTimeout(() => {
+            document.querySelector('.select2-container--open .select2-search__field').focus();
+            }, 0);
+            setTimeout(() => {
+            const $searchField = $('.select2-container--open .select2-search__field');
+            $searchField.focus();
+
+            // Shift+Tab fix
+            $searchField.on('keydown', function (e) {
+                debugger;
+                if (e.key === 'Tab' && e.shiftKey) {
+                    e.preventDefault(); // Stop Select2 from trapping focus
+                    $select.select2('close');
+
+                    // Focus previous focusable element
+                    setTimeout(() => {
+                        const $prev = $select.closest('form').find(':focusable').filter(function () {
+                        return this.compareDocumentPosition($select[0]) & Node.DOCUMENT_POSITION_FOLLOWING;
+                        }).last();
+                        $prev.focus();
+                    }, 0);
+                }
+            });
+            }, 0);
+
+            // Make the container focusable
+            $container.find('.select2-selection').attr('tabindex', '0');
+        });
+    }
+
+    $('#removePhotoButton').on('click', function () {
+        $('#photoPreview').attr('src', '#').hide();
+        $('#photoInput').val('');
+    });
+
+    $('#selectButton').on('click', function() {
+        debugger;
+        $('#photoInput').click(); // trigger file input click
+    });
+
+    $('#photoInput').on('change', function() {
+        debugger
+        const file = this.files[0];
+        if (file) {
+            const fileName = file.name;
+            //$('#fileNameDisplay').text(fileName); // display file name somewhere, if you want
+            const imageUrl = URL.createObjectURL(file);
+            $('#photoPreview').attr('src', imageUrl).show();
+        }
+    });
+
+    $('#country').change(function () {
+        //debugger;
+        if(isEditing==true)
+            return;
+        var country = $(this).select2('data')[0].text;
+        $('#state').empty();
+
+        if (country) {
+            $.ajax({
+                url: '/Employee/GetStatesByCountry',
+                data: { countryName: country },
+                success: function (data) {
+                    //debugger;
+                    $('#state').append('<option value="">Select State</option>');
+                    $.each(data, function (index, state) {
+                        $('#state').append('<option value="' + state.id + '">' + state.stateName + '</option>');
+                    });
+                },
+                error: function (e) {
+                    console.log(e);
+                    debugger;
+                }
+            });
+        }
+    });
+
+    $('#state').change(function () {
+        //debugger;
+         if(isEditing==true)
+            return;
+        var state = $(this).select2('data')[0].text;
+        $('#city').empty();
+
+        if (country) {
+            $.ajax({
+                url: '/Employee/GetCityByStates',
+                data: { stateName: state },
+                success: function (data) {
+                    //debugger;
+                    $('#city').append('<option value="">Select State</option>');
+                    $.each(data, function (index, city) {
+                        $('#city').append('<option value="' + city.id + '">' + city.cityName + '</option>');
+                    });
+                },
+                error: function (e) {
+                    console.log(e);
+                    debugger;
+                }
+            });
+        }
+    });
+
+    $('#btnsummit').click(function (e) {
+        debugger;
+
+        let name =document.getElementById('employeeName');
+        name.value=name.value.trim();
+        let code=document.getElementById('employeeCode');
+        code.value=code.value.trim();
+        name.setCustomValidity('');
+        code.setCustomValidity('');
+        if (!name.checkValidity()) {
+            name.setCustomValidity('Please enter a Employee Name');
+            name.reportValidity();
+            return;
+        }
+        if (!code.checkValidity()) {
+            code.setCustomValidity('Please enter a Employee Code');
+            code.reportValidity();
+            return;
+        }
+
+        var imgdata= getImageBase64();
+        var imgpath=$('#photoInput').val().split('\\').pop();
+        $('#loader').show();
+
+
+        name = $('#employeeName').val();
+        code = $('#employeeCode').val();
+        var hiredate = $('#hireDate').val();
+        var gender = $('#gender').val();
+        var category = $('#category').val()||'0';
+        var designation = $('#designation').val()||'0';
+        var department = $('#department').val()||'0';
+        var shiftName = $('#shiftName').val()||'0';
+        var reporting = $('#reporting').val()||'0';
+        var pan = $('#pan').val();
+        var aadhar = $('#aadhar').val();
+        var passport = $('#passport').val();
+        var otStatus = $('#otStatus').is(':checked') ? true : false;
+        var employeeResigned = $('#employeeResigned').is(':checked') ? true : false;
+        var autoShift = $('#autoShift').is(':checked') ? true : false;
+        var permanent = $('#permanent').is(':checked') ? true : false;
+        var dob = $('#dob').val();
+        var country = $('#country').val()||'0';
+        var state = $('#state').val()||'0';
+        var city = $('#city').val()||'0';
+        var phone = $('#phone').val();
+        var email = $('#email').val();
+        var address1 = $('#address1').val();
+        var address2 = $('#address2').val();
+        var landmark = $('#landmark').val();
+        var pincode = $('#pincode').val();
+        var maritalStatus = $('#maritalStatus').val();
+        var emergencyContact = $('#emergencyContact').val();
+
+        const now = new Date();
+        var dCreatedDate=
+        now.toISOString().substring(0,10)
+        var Masterid = masterid;//$('#masterid').val();
+
+        // var requestdata=JSON.stringify({iMasterid: Masterid,
+        //     sEmployeeName: name,
+        //     sEmployeeCode: code,
+        //     dHireDate: hiredate,
+        //     sGender:gender,
+        //     iCategory:category,
+        //     iDesignation:designation,
+        //     iDepartment:department,
+        //     iShift:shiftName,
+        //     iReportingTo :reporting,
+        //     sPanNo:pan,
+        //     sAadharNo:aadhar,
+        //     sPassportNo:passport,
+        //     bOTStatus:otStatus,
+        //     bEmployeeResign:employeeResigned,
+        //     bAutoShift:autoShift,
+        //     bPermanent:permanent,
+        //     DOB:dob,
+        //     iCountry:country,
+        //     iState:state,
+        //     iCity:city,
+        //     sPhoneNo:phone,
+        //     sEmailId:email,
+        //     sAddress1:address1,
+        //     sAddress2:address2,
+        //     sLandmark:landmark,
+        //     sPincode:pincode,
+        //     sMaritalStatus:maritalStatus,
+        //     sEmergencyContact:emergencyContact,
+        //     sImagePath:imgpath,
+        //     sImage:imgdata,
+        //     dCreatedDate:dCreatedDate,
+        //     dModifiedDate:dCreatedDate
+        //     });
+        debugger;
+        var Employee={iMasterid: Masterid,
+            sEmployeeName: name,
+            sEmployeeCode: code,
+            dHireDate: hiredate,
+            sGender:gender,
+            iCategory:category,
+            iDesignation:designation,
+            iDepartment:department,
+            iShift:shiftName,
+            iReportingTo :reporting,
+            sPanNo:pan,
+            sAadharNo:aadhar,
+            sPassportNo:passport,
+            bOTStatus:otStatus,
+            bEmployeeResign:employeeResigned,
+            bAutoShift:autoShift,
+            bPermanent:permanent,
+            DOB:dob,
+            iCountry:country,
+            iState:state,
+            iCity:city,
+            sPhoneNo:phone,
+            sEmailId:email,
+            sAddress1:address1,
+            sAddress2:address2,
+            sLandmark:landmark,
+            sPincode:pincode,
+            sMaritalStatus:maritalStatus,
+            sEmergencyContact:emergencyContact,
+            sImagePath:imgpath,
+            sImage:imgdata,
+            dCreatedDate:dCreatedDate,
+            dModifiedDate:dCreatedDate
+            };
+
+             var leaveAllocations = [];
+
+        // Example: Assume you have a table with rows representing leave types
+        $('#leaveTable tbody tr').each(function () {
+            var $row = $(this);
+            var isChecked = $row.find('input[name="selectedLeaves"]').is(':checked');
+            if (isChecked) {
+
+                var allocation = {
+                    iEmployee: Masterid,
+                    iLeaveType: $row.find('td').eq(0).find('input').val(),
+                    sLeaveName: $row.find('td').eq(1).text().trim(),
+                    iLeaveDaysPerMonth: $row.find('td').eq(2).find('input').val() || 0
+                };
+
+                leaveAllocations.push(allocation);
+            }
+        });
+
+        var saveEmployeeRequest=JSON.stringify ({
+            Employee:Employee,
+            leaveAllocation:leaveAllocations
+        });
+
+        $.ajax
+            ({
+                url: '@Url.Action("saveEmployee", "Employee")',
+                datatype: 'json',
+                type: "post",
+                contentType: "application/json; charset=utf-8",
+                cashe: true,
+                data: saveEmployeeRequest,
+
+                success: function (response) {
+                    debugger;
+
+                    if (response.status == true) {
+                        updateTable(response.data, response.isNew)
+                        clearControl();
+                        alert(response.message);
+                        $('#loader').hide();
+                    }
+                    else {
+                        $('#loader').hide();
+                        alert(response.message);
+                    }
+                },
+                error: function (e) {
+                    $('#loader').hide();
+                    debugger;
+                }
+            })
+
+    });
+
+    $('#btnDelete').click(function (e) {
+        debugger;
+        if (masterid == 0) {
+            alert("Please select a record to delete.");
+            return;
+        }
+        if (confirm("Are you sure you want to delete this record?")) {
+            $.ajax({
+                url: '@Url.Action("DeleteEmployee", "Employee")',
+                type: "POST",
+                data: { id: masterid },
+                success: function (response) {
+                    debugger;
+                    if (response.status == true) {
+                        alert(response.message);
+                        clearControl();
+                        updateTable(response.data, response.isNew)
+                    }
+                    else {
+                        alert(response.message);
+                    }
+                },
+                error: function (e) {
+                    debugger;
+                }
+            });
+        }
+    });
+
+    $('#btnrefresh').click(function (e) {
+        debugger;
+        clearControl();
+    });
+
+    $('body').on('click', '#myTable tr', function ()
+    {
+        debugger;
+
+        masterid = $(this).find("td").eq(3).html();
+        currentRow = $(this).closest("tr");
+        if (masterid == 0) {
+            alert("Please select a record to Edit.");
+            return;
+        }
+        $.ajax({
+                url: '@Url.Action("GetEmployeeById", "Employee")',
+                data: { id: masterid },
+                success: function (response) {
+                    //debugger;
+                    if (response.status == true) {
+                        //alert(response.message);
+                        clearControl();
+                        setEmployee(response.data,response.leaveAllocation);
+                    }
+                    else {
+                        alert(response.message);
+                    }
+                },
+                error: function (e) {
+                    debugger;
+                }
+            });
+    });
+
+    function setEmployee(data,leaveAllocation) {
+        isEditing=true;
+        debugger;
+
+        masterid=data.iMasterid;
+        $('#employeeName').val(data.sEmployeeName);
+        $('#employeeCode').val(data.sEmployeeCode);
+        $('#hireDate').val(data.dHireDate.substring(0,10));
+        $('#gender').val(data.sGender);
+        $('#category').val(data.iCategory).trigger('change');
+
+        $('#designation').val(data.iDesignation).trigger('change');
+        $('#department').val(data.iDepartment).trigger('change');
+        $('#shiftName').val(data.iShift).trigger('change');
+        $('#reporting').val(data.iReportingTo).trigger('change');
+
+        $('#pan').val(data.sPanNo);
+        $('#aadhar').val(data.sAadharNo);
+        $('#passport').val(data.sPassportNo);
+        $('#otStatus').prop('checked', data.bOTStatus);
+        $('#employeeResigned').prop('checked', data.bEmployeeResign);
+        $('#autoShift').prop('checked', data.bAutoShift);
+        $('#permanent').prop('checked', data.bPermanent);
+
+        $('#dob').val(data.dob.substring(0,10));
+
+        $('#country').val(data.iCountry).trigger('change');
+        $('#state').val(data.iState).trigger('change');
+        $('#city').val(data.iCity).trigger('change');
+
+
+        $('#phone').val(data.sPhoneNo);
+        $('#email').val(data.sEmailId);
+        $('#address1').val(data.sAddress1);
+        $('#address2').val(data.sAddress2);
+        $('#landmark').val(data.sLandmark);
+        $('#pincode').val(data.sPincode);
+        $('#maritalStatus').val(data.sMaritalStatus).trigger('change');
+        $('#emergencyContact').val(data.sEmergencyContact);
+
+        $('#photoPreview').attr('src', data.sImage)
+        $('#photoPreview').show();
+
+        //Set leaveAllocation in leaveTable table
+        //foreach(var item in leaveAllocation)
+        
+        for (let i = 0; i < leaveAllocation.length; i++) {
+        
+            var leaveType = leaveAllocation[i].iLeaveType;
+            var leaveDays = leaveAllocation[i].iLeaveDaysPerMonth;
+            var leaveName = leaveAllocation[i].sLeaveName;
+            $('#leaveTable tbody tr').each(function () {
+                var $row = $(this);
+                if ($row.find('td').eq(0).find('input').val() == leaveType) {
+                    $row.find('td').eq(2).find('input').val(leaveDays);
+                    $row.find('td').eq(0).find('input').prop('checked', true);
+                }
+            });
+            
+        }
+
+
+        debugger;
+
+        }
+
+
+
+
+
+    function updateTable(res, isNew) {
+        debugger;
+        if (isNew == 1) {
+
+            var rowCount = $('#myTable tr').length;
+            for (let i = 0; i < res.length; i++) {
+
+                $('#myTable').append('<tr>' +
+                    '<td>' + (rowCount) + '</td>' +
+                    '<td >' + res[i].sEmployeeCode + '</td > ' +
+                    '<td >' + res[i].sEmployeeName + '</td > ' +
+                    '<td style="display:none;">' + res[i].iMasterid + '</td > ' +
+                    '</tr>');
+            }
+            }
+        else {
+
+            $("#myTable").val(currentRow.find("td:eq(1)").text(res[0].sEmployeeCode));
+            $("#myTable").val(currentRow.find("td:eq(2)").text(res[0].sEmployeeName));
+            $("#myTable").val(currentRow.find("td:eq(3)").text(res[0].iMasterid));
+        }
+    }
+
+    function clearControl() {
+        $('#employeeName').val('');
+        $('#employeeCode').val('');
+        var today = new Date();
+        var formattedDate = today.toISOString().split('T')[0];  // formats to yyyy-mm-dd
+        $('#hireDate').val(formattedDate);
+        $('#dob').val(formattedDate);
+        $('#gender').val('');
+        $('#category').val('').trigger('change');
+        $('#designation').val('').trigger('change');
+        $('#department').val('').trigger('change');
+        $('#shiftName').val('').trigger('change');
+        $('#reporting').val('').trigger('change');
+
+        $('#pan').val('');
+        $('#aadhar').val('');
+        $('#passport').val('');
+        $('#otStatus').prop('checked', false);
+        $('#employeeResigned').prop('checked', false);
+        $('#autoShift').prop('checked', false);
+        $('#permanent').prop('checked', false);
+
+        $('#country').val('');
+        $('#state').val('');
+        $('#city').val('');
+        $('#phone').val('');
+        $('#email').val('');
+        $('#address1').val('');
+        $('#address2').val('');
+        $('#landmark').val('');
+        $('#pincode').val('');
+        $('#maritalStatus').val('');
+        $('#emergencyContact').val('');
+        $('#photoPreview').attr('src', '#').hide();
+        $('#photoInput').val('');
+
+        $('#leaveTable input[type="checkbox"]').prop('checked', false);
+        $('#leaveTable input[name="permonth"]').val('');
+
+
+        masterid=0;
+        $("#employeeCode").focus();
+    }
+
+    function getImageBase64() {
+        const img = document.getElementById('photoPreview');
+
+        // Check if the image has a valid source
+        if (img.src &&
+            (img.src !== "#" && img.getAttribute("src")!== "#" && img.getAttribute("src")!=="data:,")
+            && img.complete) {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+
+            // Convert canvas image to Base64
+            const base64String = canvas.toDataURL('image/png'); // can use 'image/jpeg' too
+            console.log(base64String);
+            return base64String;
+        } else {
+            console.log("No valid image loaded yet.");
+            return null;
+        }
+    }
+
+    function openTab(tabName) {
+    //debugger;
+    // Hide all tab content
+    var tabs = document.querySelectorAll(".tab-content");
+    tabs.forEach(tab => tab.classList.remove("active"));
+
+    // Remove active class from buttons
+    var buttons = document.querySelectorAll(".tab-button");
+    buttons.forEach(btn => btn.classList.remove("active"));
+
+    // Show selected tab
+    document.getElementById(tabName).classList.add("active");
+
+    // Add active class to clicked button
+    event.currentTarget.classList.add("active");
+    }
+
+    function previewPhoto() {
+        debugger;
+        var fileInput = document.getElementById('photoInput');
+        var preview = document.getElementById('photoPreview');
+
+        if (fileInput.files && fileInput.files[0]) {
+        var reader = new FileReader();
+
+        reader.onload = function (e) {
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+        };
+
+        reader.readAsDataURL(fileInput.files[0]);
+        } else {
+        preview.src = "#";
+        preview.style.display = 'none';
+        }
+    }
+
+</script>
+
+<script>
+        function limitInput(input, digit) {
+        debugger;
+        if (input.value.length > digit) {
+            input.value = input.value.slice(0, digit);
+        }
+    }
+</script>
+
+<script>
+    document.getElementById('photoPreview').ondblclick = function () {
+        //debugger;
+        const width = 800;
+        const height = 600;
+        const left = (screen.width - width) / 2;
+        const top = (screen.height - height) / 2;
+
+        const imageUrl = this.src;
+        const win = window.open('', '_blank', `width=${width},height=${height},left=${left},top=${top}`);
+        //win.document.write('<img src="' + imageUrl + '" style="max-width:100%;">');
+
+        win.document.write(`
+          <html>
+            <head>
+              <title>Image Preview</title>
+              <style>
+                html, body {
+                  margin: 0;
+                  height: 100%;
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  background-color: #f0f0f0;
+                }
+                img {
+                  max-width: 100%;
+                  max-height: 100%;
+                }
+              </style>
+            </head>
+            <body>
+              <img src="${imageUrl}" alt="Preview Image" />
+            </body>
+          </html>
+    `);
+
+        win.document.close();
+    };
+</script>

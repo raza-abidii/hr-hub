@@ -1,0 +1,192 @@
+﻿@{
+    ViewBag.Title = "Company Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="~/css/Style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h2 class="text-center">
+            Company Detail
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="3" width="7" height="7" rx="1.5" fill="#000" />
+                <rect x="14" y="3" width="7" height="7" rx="1.5" fill="#000" />
+                <rect x="3" y="14" width="7" height="7" rx="1.5" fill="#000" />
+                <rect x="14" y="14" width="7" height="7" rx="1.5" fill="#000" />
+            </svg>
+        </h2>
+
+
+        <div class="form-group mb-3">
+            <label for="CompanyName" class="form-label">Company Name</label>
+            <input type="text" class="form-control" id="CompanyName" name="CompanyName" required />
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="Address" class="form-label">Address</label>
+            <textarea class="form-control" id="Address" name="Address" rows="3" required></textarea>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="City" class="form-label">City</label>
+            <input type="text" class="form-control" id="City" name="City" required />
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="Landmark" class="form-label">Landmark</label>
+            <input type="text" class="form-control" id="Landmark" name="Landmark" />
+        </div>
+
+        @* <div class="form-group mb-3">
+            <label for="Logo" class="form-label">Upload Company Logo</label>
+            <input type="file" class="form-control" id="Logo" name="Logo" accept="image/*" />
+        </div> *@
+        <div style="width: 100px; height: 100px; border: 2px dashed #ccc; display: flex; justify-content: center; align-items: center; overflow: hidden; margin: 20px auto;">
+            <img id="photoPreview" src="#" alt="Photo Preview" style="display:none; max-width:100px; max-height:100px;" />
+        </div>
+
+        <input type="file" id="photoInput" name="photo" accept="image/*" style="display: none;">
+        @* <button id="selectButton" style="margin-left:300px">Select Photo</button>
+        <span id="fileNameDisplay"></span> *@
+
+        <div class="text-center mb-3">
+            <button id="selectButton" class="btn btn-primary">Select Photo</button>
+            <button type="button" id="removePhotoButton" class="btn btn-danger ms-2">Remove Photo</button>
+        </div>
+        <span id="fileNameDisplay"></span>
+
+        <div class="form-group mb-3">
+            <button type="button" id="btnSave" name="brnSave" class="btn btn-success">Save</button>
+            <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">Cancel</a>
+        </div>
+
+    </div>
+
+
+</body>
+
+</html>
+
+<script>
+    $(document).ready(function () {
+        debugger;
+        $.ajax({
+                url: '@Url.Action("GetCompany", "Company")',
+
+                success: function (response) {
+                    if (response.status == true) {
+                        setCompany(response.data);
+                    }
+                    else {
+                        alert(response.message);
+                    }
+                },
+                error: function (e) {
+                    debugger;
+                }
+            });
+    });
+
+    function setCompany(data)
+    {
+        debugger;
+        $('#CompanyName').val(data.companyName);
+        $('#Address').val(data.address);
+        $('#City').val(data.city);
+        $('#Landmark').val(data.landmark);
+        $('#photoPreview').attr('src', data.logo)
+        $('#photoPreview').show();
+    }
+</script>
+
+<script>
+    $('#removePhotoButton').on('click', function () {
+        $('#photoPreview').attr('src', '#').hide();
+        $('#photoInput').val('');
+    });
+
+    $('#selectButton').on('click', function() {
+        debugger;
+        $('#photoInput').click(); // trigger file input click
+    });
+
+    $('#photoInput').on('change', function() {
+        debugger
+        const file = this.files[0];
+        if (file) {
+            const fileName = file.name;
+            const imageUrl = URL.createObjectURL(file);
+            $('#photoPreview').attr('src', imageUrl).show();
+        }
+    });
+
+
+     $('#btnSave').click(function (e) {
+        debugger;
+
+         var companyname = $('#CompanyName').val();
+         var address = $('#Address').val();
+         var city = $('#City').val();
+         var landmark = $('#Landmark').val();
+         var imgdata= getImageBase64();
+         var logo = imgdata ? imgdata : 'data:,'; // Get Base64 image data or null if no image
+         var companyDetail =JSON.stringify( {
+            Id:0,
+            CompanyName: companyname,
+            Address: address,
+            City: city,
+            Landmark: landmark,
+            Logo: logo // Include the Base64 image data
+         });
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("SaveCompany", "Company")', // Adjust the URL to your action method
+            data: companyDetail,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (response) {
+                if (response.status) {
+                    alert(response.message);
+                    window.location.href = '@Url.Action("Index", "Home")'; // Redirect to index page
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error occurred:", error);
+                alert("An error occurred while saving company details.");
+            }
+        });
+     });
+
+
+     function getImageBase64() {
+        const img = document.getElementById('photoPreview');
+
+        // Check if the image has a valid source
+        if (img.src &&
+            (img.src !== "#" && img.getAttribute("src")!== "#" && img.getAttribute("src")!=="data:,")
+            && img.complete) {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+
+            // Convert canvas image to Base64
+            const base64String = canvas.toDataURL('image/png'); // can use 'image/jpeg' too
+            console.log(base64String);
+            return base64String;
+        } else {
+            console.log("No valid image loaded yet.");
+            return null;
+        }
+    }
+
+</script>

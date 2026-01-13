@@ -1,0 +1,507 @@
+﻿@{
+
+    var publishfile = Context.Request.PathBase.HasValue ? Context.Request.PathBase.Value : "";
+    var isDev = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+    // var imagePath1 = isDev ? "/image/1.jpg" : "/EMSSolution/image/1.jpg";
+    // var imagePath2 = isDev ? "/image/2.jpg" : "EMSSolution/image/2.jpg";
+    // var imagePath3 = isDev ? "/image/3.jpg" : "EMSSolution/image/3.jpg";
+    // var imagePath4 = isDev ? "/image/4.jpg" : "EMSSolution/image/4.jpg";
+    var imagePath1 = isDev ? "/image/1.jpg" : $"{publishfile}/image/1.jpg";
+    var imagePath2 = isDev ? "/image/2.jpg" : $"{publishfile}/image/2.jpg";
+    var imagePath3 = isDev ? "/image/3.jpg" : $"{publishfile}/image/3.jpg";
+    var imagePath4 = isDev ? "/image/4.jpg" : $"{publishfile}/image/4.jpg";
+}
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRM Software Login</title>
+    <!-- Tailwind CSS CDN -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Light gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        /* Custom styles for a more polished look */
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-focus:focus {
+            border-color: #6366f1; /* Indigo-500 */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3); /* Indigo-300 with transparency */
+        }
+
+
+
+        .animate-fadeInSlideUp {
+            animation: fadeInSlideUp 0.8s ease-out forwards;
+        }
+
+
+        .login-btn {
+            background: linear-gradient(45deg, #6a11cb, #2575fc);
+            border: none;
+            color: #fff;
+            padding: 12px 28px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+            .login-btn:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+            }
+    </style>
+
+    <style>
+        body {
+            position: relative;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+            /* Background that auto-resizes */
+            body::before {
+                content: "";
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-image: url('@imagePath4');
+                background-size: cover; /* 🔥 Auto resize based on resolution */
+                background-repeat: no-repeat;
+                background-position: center center;
+                background-attachment: fixed; /* Optional: smooth scrolling effect */
+
+                opacity: 0.25; /* Low opacity */
+                z-index: -1; /* Keep behind all content */
+            }
+    </style>
+
+    @* <link rel="stylesheet" href="~/css/Style.css"> *@
+</head>
+
+<body class="h-screen bg-gray-100 flex items-center justify-center">
+    <div id="loader-overlay">
+        // <img src="../Content/progress.gif" class="loader-img" />
+    </div>
+
+    <div class="flex flex-col md:flex-row bg-white rounded-2xl card-shadow overflow-hidden w-full max-w-4xl h-auto md:h-[80%] m-4">
+
+        <!-- Left Section -->
+        @* <div class="md:w-1/2 p-8 flex flex-col justify-center items-center bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-center relative"> *@
+        <div class="md:w-3/5 p-8 flex flex-col justify-center items-center bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-center relative">
+            <div id="slide-background" class="absolute inset-0 opacity-30 bg-cover bg-center z-0"></div>
+
+            <!-- Icon/Logo Placeholder -->
+            <svg id="slide-icon" class="w-24 h-24 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path id="slide-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M17 20h2a2 2 0 002-2V7a2 2 0 00-2-2h-3v3m0 3h.01M17 12h.01M17 15h.01M17 18h.01M7 12l3-3m0 0l3 3m-3-3v12m-3-9H4a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-3">
+                </path>
+            </svg>
+            <h2 id="slide-heading" class="text-3xl font-bold mb-4">Welcome to HRM Central!</h2>
+            <p id="slide-paragraph" class="text-lg opacity-90">Efficiently manage your workforce, streamline HR processes, and empower your team.</p>
+        </div>
+
+        <!-- Right Section -->
+        @* <div class="md:w-1/2 p-8 md:p-12 flex flex-col justify-center"> *@
+        <div class="md:w-2/5 p-8 md:p-12 flex flex-col justify-center">
+            <button type="button"
+                    onclick="openCreateCompany()"
+                    class="relative absolute top-3 right-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-md p-2 shadow-md transition duration-200"
+                    title="Create Company" style="width:50px;margin-left:263px;display:none">
+                <i class="fa fa-plus"></i>
+            </button>
+
+            <h1 class="text-3xl font-extrabold text-gray-800 mb-6 text-center">Login</h1>
+
+            <p class="text-gray-600 mb-8 text-center">Access your EMS Application.</p>
+
+            <form action="#" method="POST" class="space-y-6">
+                <!-- User Name -->
+                <div>
+                    <label for="UserName" class="block text-sm font-medium text-gray-700 mb-2">User Id</label>
+                    <input type="text" id="UserName" name="UserName" required
+                           style="height:30px;font-size:11px"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none input-focus transition duration-200"
+                           placeholder="User Id">
+                </div>
+
+                <!-- Password -->
+                <div class="relative">
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password" id="password" name="password" required
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none input-focus transition duration-200"
+                           style="height:30px;font-size:11px"
+                           placeholder="Password">
+
+                    <!-- Eye Icon -->
+                    <span id="togglePassword"
+                          class="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-500"
+                          style="top:35px;">
+                    </span>
+                </div>
+
+                <!-- Company Selection -->
+                @* <div>
+                    <label for="Company" class="block text-sm font-medium text-gray-700 mb-1">Company</label>
+                    <select id="Company" name="Company" 
+                            class="w-full border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400 transition duration-200"
+                            style="height:28px; font-size:10px; padding:2px 6px;">
+                        <option value="">-- Select Company --</option>
+                        @if (ViewBag.companyList != null)
+                        {
+                            @foreach (var data in ViewBag.companyList)
+                            {
+                                <option value="@data.Value" title="@data.Value">@data.Text</option>
+                            }
+                        }
+                    </select>
+                </div> *@
+
+                <div class="flex items-center">
+                    <input type="checkbox" id="RememberMe" name="RememberMe">
+                    <label for="RememberMe" class="ml-2 text-sm">Remember me</label>
+                </div>
+
+                <!-- Button -->
+                @if (ViewBag.LoginError != null)
+                {
+                    <div class="text-red-600 text-sm font-semibold mb-4 text-center">
+                        @ViewBag.LoginError
+                    </div>
+                }
+
+                <div>
+                    @*                     <button type="submit" accesskey="l"
+                            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-lg font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 transform hover:scale-105">
+ *@ 
+                    <button type="submit" accesskey="l"
+                            class="login-btn w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-lg font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 transform hover:scale-105">
+                        Login
+                    </button>
+                </div>
+            </form>
+
+
+        </div>
+    </div>
+
+    <!-- Create Company Modal -->
+    <div id="createCompanyModal"
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-xl shadow-lg w-96 p-6 relative">
+            <!-- Close Button -->
+            <button onclick="closeCreateCompany()"
+                    class="absolute top-3 right-3 text-gray-500 hover:text-gray-700">
+                ✖
+            </button>
+
+            <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">Create Company</h2>
+
+            <form id="createCompanyForm" class="space-y-4">
+                <!-- Company Name -->
+                <div>
+                    <label for="CompanyName" class="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+                    <input type="text" id="CompanyName" name="CompanyName" required
+                           class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <!-- Database Name -->
+                <div>
+                    <label for="DatabaseName" class="block text-sm font-medium text-gray-700 mb-1">Database Name</label>
+                    <input type="text" id="DatabaseName" name="DatabaseName" required
+                           class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <!-- Accounting Date -->
+                <div>
+                    <label for="AccountingDate" class="block text-sm font-medium text-gray-700 mb-1">Accounting Date</label>
+                    <input type="date" id="AccountingDate" name="AccountingDate" required
+                           class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-2">
+                    <button type="submit"
+                            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg shadow-md transition duration-200">
+                        Save Company
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <script>
+
+        const slides = [
+            {
+                iconPath: "M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2zM9 9h6m-6 4h6m-6 4h6", // User group icon
+                heading: "Welcome to EMS Solution!",
+                paragraph: "Efficiently manage your workforce, streamline HR processes, and empower your team.",
+                backgroundImage: "url('@imagePath1')"
+            },
+            {
+                iconPath: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z", // Document/File icon
+                heading: "Simplify Attendance Management",
+                paragraph: "Access employee records, policies, and reports with ease.",
+                backgroundImage: "url('@imagePath2')"
+            },
+            {
+                iconPath: "M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z", // Chart/Analytics icon
+                heading: "Gain Actionable Insights",
+                paragraph: "Track key HR metrics and make data-driven decisions.",
+                backgroundImage: "url('@imagePath3')"
+            },
+            {
+                iconPath: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z", // Calendar icon
+                heading: "Manage Leave & Attendance",
+                paragraph: "Effortlessly handle time-off requests and attendance tracking.",
+                // backgroundImage: "url('image/4.jpg')"
+                backgroundImage: "url('@imagePath4')"
+            }
+        ];
+
+        let currentSlideIndex = 0;
+        const slideIconPath = document.getElementById('slide-icon-path');
+        const slideHeading = document.getElementById('slide-heading');
+        const slideParagraph = document.getElementById('slide-paragraph');
+        const slideElements = [slideIconPath, slideHeading, slideParagraph];
+
+
+        function showSlide() {
+
+            // Remove animation classes to allow re-triggering
+            slideElements.forEach(el => {
+                el.classList.remove('animate-fadeInSlideUp');
+                // Force reflow
+                void el.offsetWidth;
+            });
+
+            const slide = slides[currentSlideIndex];
+            slideIconPath.setAttribute('d', slide.iconPath);
+            slideHeading.textContent = slide.heading;
+            slideParagraph.textContent = slide.paragraph;
+
+            const slideBackground = document.getElementById('slide-background');
+            slideBackground.style.backgroundImage = slide.backgroundImage;
+
+            // Add animation classes
+            slideElements.forEach(el => {
+                el.classList.add('animate-fadeInSlideUp');
+            });
+
+            currentSlideIndex = (currentSlideIndex + 1) % slides.length;
+        }
+
+        // Show the first slide immediately
+        showSlide();
+
+        // Change slide every 5 seconds
+        setInterval(showSlide, 3000);
+    </script>
+
+    <script>
+        // Save selected company to localStorage when it changes
+        document.addEventListener("DOMContentLoaded", function () {
+            const companySelect = document.getElementById("Company");
+
+            // Restore last selected company if available
+            const savedCompany = localStorage.getItem("LastSelectedCompany");
+            if (savedCompany) {
+                companySelect.value = savedCompany;
+            }
+
+            // Save company when user changes it
+            companySelect.addEventListener("change", function () {
+                localStorage.setItem("LastSelectedCompany", this.value);
+            });
+        });
+    </script>
+</body>
+
+</html>
+
+
+
+<script>
+    $(document).ready(function() {
+        debugger;
+        // Hide loader after page load
+        $('#loader-overlay').hide();
+    });
+</script>
+
+<script>
+    // call this if login fails
+    function showError(message) {
+        let alertBox = document.createElement("div");
+        alertBox.className = "alert alert-danger alert-dismissible fade show mt-3";
+        alertBox.role = "alert";
+        alertBox.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        document.querySelector(".card").prepend(alertBox);
+    }
+
+
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("UserName").focus();
+    });
+</script>
+
+<script>
+    // Load values when page loads
+    window.onload = function () {
+        const remembered = localStorage.getItem("RememberMe");
+        if (remembered === "true") {
+            document.getElementById("UserId").value = localStorage.getItem("UserId") || "";
+            document.getElementById("Password").value = localStorage.getItem("Password") || "";
+            document.getElementById("RememberMe").checked = true;
+        }
+    };
+
+    // Save on submit
+    function saveRememberMe() {
+        const rememberMe = document.getElementById("RememberMe").checked;
+        const userId = document.getElementById("UserId").value;
+        // const password = document.getElementById("Password").value;
+
+        if (rememberMe) {
+            localStorage.setItem("RememberMe", "true");
+            localStorage.setItem("UserId", userId);
+            // localStorage.setItem("Password", password); // ⚠️ not secure
+        } else {
+            localStorage.removeItem("RememberMe");
+            localStorage.removeItem("UserId");
+            // localStorage.removeItem("Password");
+        }
+
+        return true; // allow form to submit
+    }
+</script>
+
+<script>
+    const passwordInput = document.getElementById("password");
+    const togglePassword = document.getElementById("togglePassword");
+
+    togglePassword.addEventListener("click", function () {
+        const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+        passwordInput.setAttribute("type", type);
+        // Toggle icon (👁️ for show, 🙈 for hide)
+        this.textContent = type === "password" ? "👁️" : "🙈";
+    });
+</script>
+
+<script>
+    function openCreateCompany() {
+        debugger;
+        // Clear existing values before showing modal
+        document.getElementById("CompanyName").value = "";
+        document.getElementById("DatabaseName").value = "";
+        document.getElementById("AccountingDate").value = "";
+
+        // Hide any validation message (if you added one)
+        const dbNameError = document.getElementById("dbNameError");
+        if (dbNameError) {
+            dbNameError.classList.add("hidden");
+        }
+        document.getElementById("createCompanyModal").classList.remove("hidden");
+    }
+
+    function closeCreateCompany() {
+        document.getElementById("createCompanyModal").classList.add("hidden");
+    }
+
+    function validateDatabaseName(dbName) {
+         const validPattern = /^[A-Za-z0-9_]+$/; // only letters, numbers, and underscores
+         if (!validPattern.test(dbName)) {
+             alert("❌ Database Name can only contain letters, numbers, and underscores (no spaces or special characters).");
+             return false;
+         }
+         return true;
+     }
+
+    // Example form submission handler (replace with actual POST or AJAX)
+    document.getElementById("createCompanyForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        debugger;
+        const companyName = document.getElementById("CompanyName").value.trim();
+        const databaseName = document.getElementById("DatabaseName").value.trim();
+        const accountingDate = document.getElementById("AccountingDate").value;
+
+        if (!companyName || !databaseName || !accountingDate) {
+            alert("Please fill all fields.");
+            return;
+        }
+        if (!validateDatabaseName(databaseName)) {
+            return;
+        }
+        var companyDetail = {
+            CompanyName: companyName,
+            DatabaseName: databaseName,
+            AccountingDate: accountingDate
+        };
+
+         if (window.$ && $('#loader-overlay').length) {
+                $('#loader-overlay').show();
+            }
+
+        // Example: You can replace this with AJAX or form submission logic
+        //call company Controller=> CreateCompany Action
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("createCompany", "Company")',
+            data: companyDetail,
+
+            success: function (response) {
+                if (response.status) {
+                    alert(response.message);
+                    // Close modal and reset form
+                    closeCreateCompany();
+
+                    document.getElementById("createCompanyForm").reset();
+                    if (window.$ && $('#loader-overlay').length) {
+                        $('#loader-overlay').hide();
+                    }
+                    // 🔁 Refresh the page after short delay (so user sees alert first)
+                    setTimeout(function () {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    alert(response.message);
+                     if (window.$ && $('#loader-overlay').length) {
+                        $('#loader-overlay').hide();
+                    }
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error occurred:", error);
+                 if (window.$ && $('#loader-overlay').length) {
+                        $('#loader-overlay').hide();
+                    }
+                alert("An error occurred while saving company details.");
+
+            }
+
+        });
+
+    });
+</script>

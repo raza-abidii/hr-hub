@@ -1,0 +1,863 @@
+﻿@{
+    var months = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.MonthNames;
+}
+@{
+    // ViewBag.Employees is assumed to be a List of objects with "Name" and "Code"
+    var employeesJson = Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Employees);
+    var startMonth = ViewBag.startMonth;
+}
+
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Report</title>
+
+
+    <style>
+        #tooltip {
+            position: absolute;
+            background: #333;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: none;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+
+
+        table.attendance-table {
+            /* width: 100%; */
+            border-collapse: collapse;
+            /* min-width: 800px; */
+        }
+
+        .attendance-table thead {
+            background-color: #1e88e5;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .attendance-table th, .attendance-table td {
+            padding: 10px 14px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+            white-space: nowrap;
+        }
+
+        .attendance-table tbody tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+
+        .attendance-table tbody tr:hover {
+            background-color: #f1f7ff;
+        }
+
+        .employee-name {
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .select2-container {
+            width: 100% !important;
+        }
+
+        .select-dropdown {
+            width: 100%;
+        }
+    </style>
+
+    <link rel="stylesheet" href="~/css/Style.css">
+</head>
+<body>
+
+    <div class="container">
+
+        <h4 class="text-center d-flex justify-content-center align-items-center gap-2">
+            Employee Attendance Report Columnwise
+            <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <!-- Report border -->
+                <rect x="2" y="2" width="20" height="20" rx="2" ry="2" fill="#ffffff" stroke="#2c3e50" stroke-width="2" />
+
+                <!-- Column lines -->
+                <line x1="8" y1="4" x2="8" y2="20" stroke="#3498db" stroke-width="1.5" />
+                <line x1="16" y1="4" x2="16" y2="20" stroke="#3498db" stroke-width="1.5" />
+
+                <!-- Row lines -->
+                <line x1="4" y1="8" x2="20" y2="8" stroke="#bdc3c7" stroke-width="1" />
+                <line x1="4" y1="12" x2="20" y2="12" stroke="#bdc3c7" stroke-width="1" />
+                <line x1="4" y1="16" x2="20" y2="16" stroke="#bdc3c7" stroke-width="1" />
+
+                <!-- Green checkmarks -->
+                <path d="M5 9L6.5 10.5L9 8" stroke="#2ecc71" stroke-width="2" fill="none" />
+                <path d="M13 13L14.5 14.5L17 12" stroke="#2ecc71" stroke-width="2" fill="none" />
+            </svg>
+        </h4>
+
+        <div class="form-group mb-3">
+            <label class="bold-label d-block mb-1">Report Type:</label>
+            <div class="d-flex gap-3">
+                <label class="mb-0">
+                    <input type="radio" name="ReportType" value="EmployeeWise" checked onchange="toggleAllocationView()" />
+                    Employee-wise
+                </label>
+                <label class="mb-0">
+                    <input type="radio" name="ReportType" value="BranchWise" onchange="toggleAllocationView()" />
+                    Branch-wise
+                </label>
+            </div>
+        </div>
+        <div id="employeeDropdown" class="form-group mb-3">
+            <label class="bold-label">Employee</label>
+            <select id="employee" name="employee" class="select-dropdown">
+                <option>Select Employee</option>
+                @foreach (var employee in ViewBag.Employees)
+                {
+                    <option value="@employee.iMasterid">@employee.sEmployeeName</option>
+                }
+            </select>
+        </div>
+        <div id="branchDropdown" class="form-group mb-3" style="display: none; ">
+            <label class="bold-label">Branch</label>
+            <select id="branch" name="branch" class="select-dropdown">
+                <option>Select Branch</option>
+                @foreach (var branch in ViewBag.Branch)
+                {
+                    <option value="@branch.iMasterid">@branch.sName</option>
+                }
+            </select>
+        </div>
+        <div class="flex gap-4 mb-3">
+            <!-- Month Dropdown -->
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700">Month</label>
+                <select id="monthSelect" class="select-dropdown w-full">
+                    @for (int i = 1; i <= 12; i++)
+                    {
+                        var selectedmonthName = (i == ViewBag.selectedMonth ? "selected" : "");
+                        if (selectedmonthName == "")
+                        {
+                            <option value="@i">@months[i - 1]</option>
+                        }
+                        else
+                        {
+                            <option value="@i" selected>@months[i - 1]</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Year Dropdown -->
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700">Year</label>
+                <select id="yearSelect" class="select-dropdown w-full">
+                    @for (int y = DateTime.Now.Year - 5; y <= DateTime.Now.Year + 5; y++)
+                    {
+                        var yearName = (y == ViewBag.SelectedYear ? "selected" : "");
+                        if (yearName == "")
+                        {
+                            <option value="@y">@y</option>
+                        }
+                        else
+                        {
+                            <option value="@y" selected>@y</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+
+
+        <div class="flex">
+            <button id="display" type="button" class="btn btn-outline-primary" style="width:135px;height:40px" accesskey="s">Display</button>
+            <button id="exportexcel" type="button" class="btn btn-outline-primary" style="width:135px;height:40px" accesskey="r">Export to Excel</button>
+        </div>
+    </div>
+
+    <div class="select2-container">
+        <div class="attendance-container overflow-x-auto p-4 bg-white shadow rounded-lg">
+            <table id="myTable" class="attendance-table text-sm text-left text-gray-700 border border-gray-200">
+                <thead class="bg-gray-100 text-xs uppercase text-gray-600" id="tableHeader">
+                    <tr>
+                        <th>Day</th>
+                        @* <th class="px-2 py-1 border-r border-gray-200">Employee Id</th> *@
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200" id="tableBody">
+                    <tr>
+                        <td>XXX</td>
+                        <td>ZZZ</td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+    <br />
+    <div id="legend" style="display: flex; flex-wrap: wrap; gap: 1rem; padding: 1rem; border: 1px solid #ccc; border-radius: 8px;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 20px; height: 20px; background-color: #0DCAF0;"></div>
+            <span>Public Holiday</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 20px; height: 20px; background-color: #F19E9E;"></div>
+            <span>Late In</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 20px; height: 20px; background-color: #9D5050;"></div>
+            <span>Early Out</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 20px; height: 20px; background-color: #E58110;"></div>
+            <span>Late In/Early Out</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 20px; height: 20px; background-color: #e71818;"></div>
+            <span>Absent</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 20px; height: 20px; background-color: #155724;"></div>
+            <span>Ontime</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 20px; height: 20px; background-color: #28a745;"></div>
+            <span>Leave</span>
+        </div>
+
+    </div>
+
+    <div id="tooltip"></div>
+
+    <br />
+
+</body>
+
+</html>
+
+<script src="/js/GenericFunction.js"></script>
+<script>
+
+     $(document).ready(function() {
+        $('#employee').select2({
+            placeholder: "Select employee",
+            allowClear: true
+        });
+         $('#branch').select2({
+            placeholder: "Select Branch",
+            allowClear: true
+        });
+        $('#monthSelect').select2({
+            placeholder: "Select Month",
+            allowClear: true
+        });
+        $('#yearSelect').select2({
+            placeholder: "Select Year",
+            allowClear: true
+        });
+
+        focusonselectcontrol("#employee");
+        focusonselectcontrol("#branch");
+        focusonselectcontrol("#monthSelect");
+        focusonselectcontrol("#yearSelect");
+
+        $('#loader-overlay').hide();
+
+     });
+
+     // Event listener for the display button
+     //ajax call attendanceReport/GetAttendanceReportData
+        $("#display").click(function () {
+            debugger;
+            var displayType = $("input[name='DisplayType']:checked").val();
+
+            var startday= '@ViewBag.startMonth';
+            // if (startday == 1)
+            // {
+            //     generateTableHeaderdaystartfrom1();
+            //     return;
+            // }
+            // else
+            // {
+
+            //     generateTableHeader();
+
+
+            // }
+
+
+            //generateTableHeader();
+            var employee = $("#employee").val();
+            var employeename=$("#employee").find('option:selected').text()
+            var branch = $("#branch").val();
+            var branchname=$("#branch").find('option:selected').text()
+            var month = $("#monthSelect").val();
+            var year = $("#yearSelect").val();
+            var reportType = $("input[name='ReportType']:checked").val();
+            if(reportType=="EmployeeWise")
+            {
+                // if (employeename=='Select Employee' || employeename=='' || !month || !year) {
+                //     alert("Please select employee, Month,Year ");
+                //     return;
+                // }
+                if (!month || !year) {
+                    alert("Please select Month,Year ");
+                    return;
+                }
+            }
+            else
+            {
+                 if (employeename=='Select Branch' || !month || !year) {
+                    alert("Please select Branch, Month,Year ");
+                    return;
+                }
+            }
+
+            $('#loader-overlay').show();
+            debugger;
+            $.ajax({
+                url: '@Url.Action("GetAttendanceReportData", "AttendanceReport")',
+                type: 'post',
+                data: {
+                    iEmployee: employee,
+                    iBranch: branch,
+                    iMonth: month,
+                    iYear: year,
+                    EmployeeName:employeename,
+                    BranchName:branchname,
+                    ReportType: reportType
+                },
+                success: function (response) {
+                    debugger;
+                    if(response.success==true)
+                        if (startday == 1)
+                            displayDataDay1(response.data)
+                        else
+                            displayDataColumnwise(response.data)
+
+                    else
+                        alert (response.message);
+
+                        $('#loader-overlay').hide();
+                },
+                error: function (xhr, status, error) {
+                    $('#loader-overlay').hide();
+                    console.error("Error fetching data:", error);
+                }
+            });
+        });
+
+        //exporttoexcel
+        $("#exportexcel").click(function () {
+            debugger;
+
+            var month = $("#monthSelect").find('option:selected').text();
+            var year = $("#yearSelect").find('option:selected').text();
+
+            $('#loader-overlay').show();
+            debugger;
+            var tabledata= getTableData();
+            $.ajax({
+                url: '@Url.Action("ExportToExcel", "AttendanceReportVertical")',
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                data: JSON.stringify({
+                    attendanceData: tabledata,
+                    month: month,
+                    year: year
+                }),
+                xhrFields: {
+                    responseType: 'blob' // This tells jQuery to treat the response as binary
+                },
+                success: function (data, status, xhr) {
+                    debugger;
+                    // Try to get filename from content-disposition
+                    var disposition = xhr.getResponseHeader('Content-Disposition');
+                    var matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+                    var filename = (matches != null && matches[1]) ? matches[1].replace(/['"]/g, '') : "AttendanceReport.xlsx";
+
+                    // Create a link and download
+                    var blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                    var url = window.URL.createObjectURL(blob);
+
+                    var a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(url);
+                    $('#loader-overlay').hide();
+                },
+                error: function (xhr, status, error) {
+                    $('#loader-overlay').hide();
+                    console.log("Error fetching data:", error);
+                }
+            });
+        });
+
+        function getTableData() {
+            debugger;
+            let data = [];
+            let totalEmployees = $("table thead tr th").length - 1; // minus date column
+
+            // Loop through each employee column (starting from column index 1)
+            for (let col = 1; col <= totalEmployees; col++) {
+
+                let header = $("table thead tr th").eq(col).html().trim();
+
+                // Extract from header
+                let headerLines = header.split("<br>");
+                let EmployeeName = headerLines[0].trim();
+                let EmployeeId =  $("<div>"+headerLines[1]+"</div>").text().replace(/[()]/g, "").trim();
+                let BranchName =  $("<div>"+headerLines[2]+"</div>").text().replace(/[()]/g, "").trim();
+
+                let empObj = {
+                    EmployeeName,
+                    EmployeeId,
+                    BranchName
+                };
+
+                // Loop through each date row for this employee
+                $("table tbody tr").each(function (rowIndex) {
+
+                    // let dateText = $(this).find("td").eq(0).text().trim(); // first column date
+                    let fullDate = $(this).find("td").eq(0).text().trim();   // e.g. "22/11/2025"
+                    let parts = fullDate.split("/");                         // ["22","11","2025"]
+                    let dateText = parts[0] + "-" + parts[1];
+
+                    let attCell = $(this).find("td").eq(col);
+                    let dayValue = attCell.text().trim();
+                    let bgColor = attCell.css("background-color");
+
+                    empObj[`day-${rowIndex + 1}`] = dayValue;
+                    empObj[`day-${rowIndex + 1}bg`] = bgColor;
+                    empObj[`day-${rowIndex + 1}date`] = dateText;
+
+                });
+
+                data.push(empObj);
+            }
+            return data;
+        }
+
+        function displayDataColumnwise(data)
+        {
+            debugger;
+            const month = document.getElementById("monthSelect").value;
+            const year = document.getElementById("yearSelect").value;
+
+            // Get table reference
+            const table = document.getElementById("myTable");
+            const tbody = table.querySelector("tbody");
+            const thead = table.querySelector("thead");
+
+            // Clear old data
+            thead.innerHTML = "";
+            tbody.innerHTML = "";
+
+            // Define start and end date (26th previous month to 25th current month)
+            const startDate = new Date(year, month - 2, @ViewBag.startMonth);
+            const endDate = new Date(year, month - 1, @ViewBag.startMonth - 1);
+
+            // === Generate Table Header ===
+            const headerRow = document.createElement("tr");
+
+            // First header cell for Date
+            // headerRow.innerHTML = `<th class="px-2 py-1 border-r border-gray-200 bg-gray-100">Date</th>`;
+            headerRow.innerHTML = `<th>Date</th>`;
+            // Add each employee as a column header
+            data.forEach(item => {
+                const th = document.createElement("th");
+                //th.className = "px-2 py-1 border-r border-gray-200 bg-gray-100";
+
+
+                //th.textContent = item.EmployeeName;
+                // th.textContent = item.EmployeeName + " (" + item.EmployeeId + ")";
+                th.innerHTML = `${item.EmployeeName}<br><small>(${item.EmployeeId})</small><br><small>(${item.BranchName})</small>`
+                headerRow.appendChild(th);
+                               
+            });
+
+            thead.appendChild(headerRow);
+
+            // === Generate Table Body ===
+            let rowDate = new Date(startDate); // Clone
+
+            while (rowDate <= endDate) {
+                const row = document.createElement("tr");
+
+                // First cell: Date
+                const dateCell = document.createElement("td");
+                //dateCell.className = "px-2 py-1 border-r border-gray-100 font-semibold";
+                dateCell.textContent = rowDate.toLocaleDateString('en-GB'); // dd/mm/yyyy
+                row.appendChild(dateCell);
+
+                const dateIndex = rowDate.getDate();
+
+                // Add attendance data for each employee
+                data.forEach(item => {
+                    const cell = document.createElement("td");
+                    const dayIndex = dateIndex < 10 ? `0${dateIndex}` : `${dateIndex}`;
+                    const index = parseInt(dayIndex) ;
+
+                    //cell.className = "px-2 py-1 border-r border-gray-100";
+
+
+
+                    cell.textContent = item[`day-${index}-in`] + "-" + item[`day-${index}-out`];
+
+
+
+                    const remarks = item[`remarks-${index}`];
+                    const holiday = item[`day-${index}-ph`];
+
+                    if (holiday === "Sunday") {
+                        cell.style.backgroundColor = "#0dcaf0";
+                        cell.textContent = "Sunday";
+                    }
+                    else if (holiday === "Weekly Off") {
+                        cell.style.backgroundColor = "#0dcaf0";
+                        cell.textContent = "Weak-Off";
+                    } else if (remarks === "Late In/Early Out") {
+                        cell.style.backgroundColor = "#E58110";
+                    } else if (remarks === "Late In") {
+                        cell.style.backgroundColor = "#F19E9E";
+                    } else if (remarks === "Early Out") {
+                        cell.style.backgroundColor = "#9D5050";
+                     
+                    }
+                     else if(remarks ==="Ontime")
+                        cell.style.backgroundColor = "#155724";//ontime
+                    else if (remarks === "") {
+
+                        if(cell.textContent=='-')
+                        {
+                            cell.style.backgroundColor = "#e71818";
+                            cell.style.color = "#721c24";
+                            cell.textContent = "Absent";
+                        }
+                        else
+                            cell.style.backgroundColor = "#155724";//ontime
+
+                    }
+
+                    if (remarks?.includes("Leave")) {
+                        cell.style.backgroundColor = "#28a745";
+                        cell.textContent = "Leave";
+                    }
+
+                    if (remarks === "LeaveCL") {
+                        cell.textContent = "Leave-CL";
+                    }
+                    if (remarks === "LeaveEL") {
+                        cell.textContent = "Leave-EL";
+                    }
+
+                    cell.style.color = "white";
+                    row.appendChild(cell);
+                });
+
+                tbody.appendChild(row);
+                rowDate.setDate(rowDate.getDate() + 1); // Move to next day
+            }
+
+        }
+
+        function displayDataDay1(data)
+        {
+              debugger;
+            const month = document.getElementById("monthSelect").value;
+            const year = document.getElementById("yearSelect").value;
+
+            // Get table reference
+            const table = document.getElementById("myTable");
+            const tbody = table.querySelector("tbody");
+            const thead = table.querySelector("thead");
+
+            // Clear old data
+            thead.innerHTML = "";
+            tbody.innerHTML = "";
+
+            // Define start and end date (01st current month to last day current month)
+            const startDate = new Date(year, month - 1, @ViewBag.startMonth);
+            const daysInMonth = new Date(year, month-1, 0).getDate();
+            const endDate = new Date(year, month - 1, daysInMonth);
+            
+            // === Generate Table Header ===
+            const headerRow = document.createElement("tr");
+
+            // First header cell for Date
+            // headerRow.innerHTML = `<th class="px-2 py-1 border-r border-gray-200 bg-gray-100">Date</th>`;
+            headerRow.innerHTML = `<th>Date</th>`;
+
+            // Add each employee as a column header
+            data.forEach(item => {
+                const th = document.createElement("th");
+                //th.className = "px-2 py-1 border-r border-gray-200 bg-gray-100";
+
+
+                //th.textContent = item.EmployeeName;
+                // th.textContent = item.EmployeeName + " (" + item.EmployeeId + ")";
+                th.innerHTML = `${item.EmployeeName}<br><small>(${item.EmployeeId})</small>`
+                headerRow.appendChild(th);
+            });
+
+            thead.appendChild(headerRow);
+
+            // === Generate Table Body ===
+            let rowDate = new Date(startDate); // Clone
+
+            while (rowDate <= endDate) {
+                const row = document.createElement("tr");
+
+                // First cell: Date
+                const dateCell = document.createElement("td");
+                //dateCell.className = "px-2 py-1 border-r border-gray-100 font-semibold";
+                dateCell.textContent = rowDate.toLocaleDateString('en-GB'); // dd/mm/yyyy
+                row.appendChild(dateCell);
+
+                const dateIndex = rowDate.getDate();
+
+                // Add attendance data for each employee
+                data.forEach(item => {
+                    const cell = document.createElement("td");
+                    const dayIndex = dateIndex < 10 ? `0${dateIndex}` : `${dateIndex}`;
+                    const index = parseInt(dayIndex) ;
+
+                    //cell.className = "px-2 py-1 border-r border-gray-100";
+
+
+
+                    cell.textContent = item[`day-${index}-in`] + "-" + item[`day-${index}-out`];
+
+
+
+                    const remarks = item[`remarks-${index}`];
+                    const holiday = item[`day-${index}-ph`];
+
+                    if (holiday === "Sunday") {
+                        cell.style.backgroundColor = "#0dcaf0";
+                        cell.textContent = "Sunday";
+                    } else if (remarks === "Late In/Early Out") {
+                        cell.style.backgroundColor = "#E58110";
+                    } else if (remarks === "Late In") {
+                        cell.style.backgroundColor = "#F19E9E";
+                    } else if (remarks === "Early Out") {
+                        cell.style.backgroundColor = "#9D5050";
+                    } else if (remarks === "") {
+
+                        if(cell.textContent=='-')
+                        {
+                            cell.style.backgroundColor = "#dc0000";
+                            cell.style.color = "#721c24";
+                            cell.textContent = "Absent";
+                        }
+                        else
+                            cell.style.backgroundColor = "#155724";//ontime
+
+                    }
+
+                    if (remarks?.includes("Leave")) {
+                        cell.style.backgroundColor = "#28a745";
+                        cell.textContent = "Leave";
+                    }
+
+                    if (remarks === "LeaveCL") {
+                        cell.textContent = "Leave-CL";
+                    }
+                    if (remarks === "LeaveEL") {
+                        cell.textContent = "Leave-EL";
+                    }
+
+                    cell.style.color = "white";
+                    row.appendChild(cell);
+                });
+
+                tbody.appendChild(row);
+                rowDate.setDate(rowDate.getDate() + 1); // Move to next day
+            }
+
+
+
+        }
+
+    //generate dynamic table based on month year selection
+    function generateTableHeaderdaystartfrom1() {
+        debugger;
+        const month = document.getElementById("monthSelect").value;
+        const year = document.getElementById("yearSelect").value;
+        if (!month || !year) return;
+
+        const daysInMonth = new Date(year, month, 0).getDate();
+        const headerRow = document.getElementById("tableHeader").rows[0];
+
+        // Clear existing day columns
+        while (headerRow.cells.length > 3) {
+            headerRow.deleteCell(-1);
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const th = document.createElement("th");
+            th.textContent = `${String(day).padStart(2, '0')}-${String(month).padStart(2, '0')}`;
+            headerRow.appendChild(th);
+        }
+    }
+
+    //generate dynamic table based on month year selection day start from 26 of previous month to 25 th of given month
+    function generateTableHeader() {
+        debugger;
+        const month = document.getElementById("monthSelect").value;
+        const year = document.getElementById("yearSelect").value;
+        if (!month || !year) return;
+        const daysInMonth = new Date(year, month, 0).getDate();
+
+        const table = document.getElementById("myTable"); // Your table element
+
+        table.innerHTML = "";
+
+        //const headerRow = document.getElementById("tableHeader").rows[0];
+        // Clear existing day columns
+        // while (headerRow.cells.length > 2) {
+        //     headerRow.deleteCell(-1);
+        // }
+
+        @ViewBag.startMonth
+
+        // Calculate the start date (26th of the previous month)
+        const startDate = new Date(year, month - 2, @ViewBag.startMonth);
+        // Calculate the end date (25th of the current month)
+        const endDate = new Date(year, month-1, @ViewBag.startMonth-1);
+
+
+
+
+        table.style.tableLayout = "auto"; // Ensures column width adjusts automatically
+        table.style.width = "100%";
+
+        const headerRow = document.createElement("tr");
+
+        const dateHeader = document.createElement("th");
+        dateHeader.textContent = "Day";
+        headerRow.appendChild(dateHeader);
+
+
+        table.appendChild(headerRow);
+
+        for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+            const row = document.createElement("tr");
+
+            // Create the first column with the date
+            const dateCell = document.createElement("td");
+            dateCell.textContent = `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            row.appendChild(dateCell);
+
+            table.appendChild(row);
+        }
+     }
+
+
+    $('#myTable').on('click', 'td', function(e) {
+        debugger;
+      const bgColor = $(this).css('background-color');
+      var tooltipText = "";
+      if (bgColor === 'rgb(209, 236, 241)') { // red background
+        tooltipText = "Sunday";
+      }
+      else  if (bgColor === 'rgb(241, 158, 158)') { // red background
+        tooltipText = "Late In";
+      }
+      else  if (bgColor === 'rgb(229, 129, 16)') { // red background
+        tooltipText = "Late In/Early Out";
+      }
+      else  if (bgColor === 'rgb(157, 80, 80)') { // red background
+        tooltipText = "Early Out";
+      }
+      else  if (bgColor === 'rgb(234, 5, 5)') { // red background
+        tooltipText = "Absent";
+      }
+      else  if (bgColor === 'rgb(21, 87, 36)') { // red background
+        tooltipText = "OnTime";
+      }
+
+      else {
+        $('#tooltip').hide();
+      }
+
+      if (tooltipText) {
+          $('#tooltip')
+            .text(tooltipText)
+            .css({
+              top:  e.pageY + 10 + 'px',
+              left: e.pageX + 10 + 'px'
+            })
+            .show();
+        }
+
+    });
+
+    $('#myTable').on('mouseleave', 'td', function () {
+      $('#tooltip').hide();
+    });
+
+    function toggleAllocationView() {
+        const isEmployeeWise = document.querySelector('input[name="ReportType"]:checked').value === "EmployeeWise";
+        document.getElementById("employeeDropdown").style.display = isEmployeeWise ? "block" : "none";
+        document.getElementById("branchDropdown").style.display = isEmployeeWise ? "none" : "block";
+    }
+
+
+</script>
+<script>
+    // Parse the Razor-passed employees into JavaScript
+    const employees = @Html.Raw(employeesJson);
+    const select = document.getElementById("employee");
+
+    let showCodeOnly = false;
+
+    function renderOptions() {
+        const selectedValue = select.value;
+        select.innerHTML = "";
+
+         const option = document.createElement("option");
+            option.value = 0;
+            option.text = "Select Employee";
+            select.appendChild(option);
+
+        employees.forEach(emp => {
+            const option = document.createElement("option");
+            option.value = emp.iMasterid;
+            option.text = showCodeOnly ? emp.sEmployeeCode : emp.sEmployeeName;
+            select.appendChild(option);
+        });
+
+        // select.value = selectedValue;
+        select.value = "Select Employee";
+    }
+
+    renderOptions();
+
+    document.addEventListener("keydown", function (e) {
+        // if (e.altKey && e.key === "F2") {
+        if (e.key === "F2") {
+            showCodeOnly = !showCodeOnly;
+            renderOptions();
+        }
+    });
+</script>
+
+
+<script>
+    // document.getElementById("printReport").addEventListener("click", function () {
+    //     window.print();
+    // });
+</script>

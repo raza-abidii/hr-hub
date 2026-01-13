@@ -1,0 +1,191 @@
+﻿@{
+    ViewBag.Title = "MVC Form";
+
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title</title>
+    
+    <link rel="stylesheet" href="~/css/Style.css">
+
+    <style>
+       /*  body {
+            background-color: #cccccc;
+        } */
+
+      
+    </style>
+
+</head>
+<body>
+
+
+    @* <img id="loader" src="../Content/progress.gif" /> *@
+    <div id="loader-overlay">
+        <img src="../Content/progress.gif" class="loader-img" />
+    </div>
+
+    <div class="container" >
+        <h4 class="text-center d-flex justify-content-center align-items-center gap-2">
+            Biometric Data Update
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Device Frame -->
+                <rect x="2" y="3" width="20" height="18" rx="2" fill="#e6e6e6" stroke="#333" stroke-width="1.5" />
+
+                <!-- Screen -->
+                <rect x="4" y="5" width="10" height="5" rx="1" fill="#b3d9ff" stroke="#222" stroke-width="1" />
+
+                <!-- Keypad -->
+                <g fill="#999">
+                    <rect x="5" y="12" width="2" height="2" rx="0.3" />
+                    <rect x="8" y="12" width="2" height="2" rx="0.3" />
+                    <rect x="11" y="12" width="2" height="2" rx="0.3" />
+
+                    <rect x="5" y="15" width="2" height="2" rx="0.3" />
+                    <rect x="8" y="15" width="2" height="2" rx="0.3" />
+                    <rect x="11" y="15" width="2" height="2" rx="0.3" />
+                </g>
+
+                <!-- Fingerprint Sensor -->
+                <circle cx="18" cy="14.5" r="2.5" fill="#ddd" stroke="#000" stroke-width="1" />
+                <path d="M17.3 14.5a1 1 0 0 1 2 0m-1.5.8c.3.5 1 .5 1.3 1.2" stroke="#000" stroke-width="0.8" stroke-linecap="round" />
+
+                <!-- Label -->
+                <text x="4" y="20.5" font-size="2.5" font-family="Arial" fill="#333">Biometric</text>
+            </svg>
+        </h4>
+        @* <div class="form-group" >
+            <label for="IPAddress" >IP Address</label>
+            <select id="IPAddress" name="IPAddress">
+                <option value="">Select IP Address</option>
+                @foreach (var item in ViewBag.Machinemap)
+                {
+                    <option value="@item.IPAddress">@($"{item.IPAddress} ({item.Description})")</option>
+                }
+            </select>
+        </div> *@
+
+
+        @* <div class="form-group" >
+            <div class="form-group">
+            <label for="machineid">Machine ID</label>
+            <select id="machineid" name="machineid" >
+                <option value="">Select Machine ID</option>
+                @foreach (var item1 in ViewBag.Machinemap)
+                {
+                    <option value="@item1.MachineId">@item1.MachineId</option>
+                }
+            </select>
+        </div> *@
+        <br>
+        <div class="flex">
+            <button id="btnsummit" type="submit" class="btn btn-outline-primary" style="width:180px">Connect and Save</button>
+        </div>
+    </div>
+</body>
+
+</html>
+
+
+@* <script src="/js/GenericFunction.js"></script> *@
+<script>
+    $(document).ready(function () {
+        debugger;
+        //$('#loader').hide();
+        $('#loader-overlay').hide();
+        $('#IPAddress').select2({
+            placeholder: "Select IP Address",
+            allowClear: true
+        });
+        // $('#machineid').select2({
+        //     placeholder: "Select Machine ID",
+        //     allowClear: true
+        // });
+        focusonselectcontrol('#IPAddress');
+        //focusonselectcontrol('#machineid');
+         $("#IPAddress").focus();
+    });
+
+    $('#IPAddress').on('change', function () {
+        debugger;
+        // if ($('#IPAddress').val() == '') {
+        //     alert('Select IP Address');
+        //     $('#loader').hide();
+        //     return;
+        // }
+        var ipaddress = $('#IPAddress').val();
+        $.ajax
+            ({
+                url: '@Url.Action("AutoSelectMachine", "BiometricImport")',
+                datatype: 'JSON',
+                type: "post",
+                cashe: true,
+                data: { ipAddress: ipaddress},
+                success: function (response) {
+                    debugger;
+
+                    if (response.status == true) {
+                        $('#machineid').val(response.data);
+                        
+                    }
+                    else {
+                       
+                        alert(response.message);
+                    }
+                },
+                error: function (e) {
+                    
+                    debugger;
+                }
+            })
+    });
+
+    $('#btnsummit').click(function (e) {
+        debugger;
+
+        if ($('#IPAddress').val() == '') {
+            alert('Select IP Address');
+            return;
+        }
+        $('#loader-overlay').show();
+        var ipaddress = $('#IPAddress').val();
+
+        var machineid = parseInt($('#machineid').val());
+        if ($('#machineid').val() == '')
+            machineid = 1;
+
+        var portno = 4370;
+        $.ajax
+            ({
+                url: '@Url.Action("ImportBiometricData", "BiometricImport")',
+                datatype: 'JSON',
+                type: "post",
+                cashe: true,
+                data: { ipAddress: ipaddress, machineId: machineid, portNo: portno },
+                success: function (response) {
+                    debugger;
+
+                    if (response.status == true) {
+                        updateTable(response.data)
+                        alert(response.message);
+                    }
+                    else {
+                        alert(response.message);
+                    }
+                    $('#loader-overlay').hide();
+                },
+                error: function (e) {
+                    $('#loader-overlay').hide();
+                    debugger;
+                }
+            })
+    });
+
+    function updateTable(res) {
+        debugger;
+    }
+</script>

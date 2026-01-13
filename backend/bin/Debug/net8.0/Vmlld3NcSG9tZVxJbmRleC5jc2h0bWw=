@@ -1,0 +1,2497 @@
+﻿@using Microsoft.AspNetCore.Http
+@using Newtonsoft.Json;
+@using System.Globalization
+@{
+    ViewData["Title"] = "Home Page";
+    var role = Context.Session.GetString("Role");
+    var hrrole = Context.Session.GetString("HRRole");
+}
+
+@model List<EMSSolution.Models.TimecardAdvance>
+@{
+    int year = ViewBag.Year;
+    int month = ViewBag.Month;
+    var daysInMonth = DateTime.DaysInMonth(year, month);
+    var firstDayOfWeek = (int)new DateTime(year, month, 1).DayOfWeek;
+    var date = new DateTime(year, month, 1);
+    var currentYear = DateTime.Now.Year;
+    var years = Enumerable.Range(currentYear - 5, 11).ToList();
+    var prevDate = new DateTime(year, month, 1).AddMonths(-1);
+    var nextDate = new DateTime(year, month, 1).AddMonths(1);
+}
+
+@{
+    var companyLogo = Context.Session.GetString("CompanyLogo");
+    var companyName = Context.Session.GetString("CompanyName");
+
+}
+
+<style>
+    .table-sm th, .table-sm td {
+        padding: 0.2rem;
+    }
+
+    .card {
+        font-size: 12px;
+        border-radius: 10px;
+        color:black
+    }
+
+    .card-header h5 {
+        font-size: 14px;
+        height: 20px;
+    }
+
+    card-header-height {
+        height: 38px;
+    }
+
+    .calendar-cell {
+        cursor: pointer;
+        font-size: 11px;
+        padding: 2px;
+    }
+
+    .bg-present {
+        background-color: #c8e6c9 !important;
+    }
+
+    .bg-leave {
+        background-color: #fff9c4 !important;
+    }
+
+    .bg-absent {
+        background-color: #ffcdd2 !important;
+    }
+
+    .bg-late {
+        background-color: #ffab91 !important;
+    }
+
+    .bg-holiday {
+        background-color: #b2dfdb !important;
+    }
+
+    .calendar-wrapper {
+        max-width: 300px;
+        width: 100%;
+        margin: auto;
+    }
+
+    .nav-controls {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+    }
+
+    select.form-select-sm, .btn-sm {
+        font-size: 12px;
+        padding: 0.2rem 0.4rem;
+    }
+
+</style>
+
+<style>
+    .custom-col-5 {
+        width: 20%;
+        padding: 0 40px;
+        box-sizing: border-box;
+    }
+
+    .employee-card {
+        width: 100%;
+        max-width: 300px;
+        padding: 20px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #5E5090, #7D6BCB);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .employee-card:hover {
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.35);
+        z-index: 2;
+    }
+
+    .employee-card .label {
+        font-size: 1rem;
+        font-weight: 500;
+        margin-bottom: -4px;
+    }
+
+    .employee-card .value {
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+
+    .arrow-btn {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        /* background-color: rgba(255, 255, 255, 0.2); */
+        background-color: black;
+        border: none;
+        color: white;
+        font-size: 1.2rem;
+        padding: 0.4rem 0.6rem;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .arrow-btn:hover {
+        background-color: rgba(255, 255, 255, 0.4);
+    }
+</style>
+
+<style>
+    .card-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.9rem;
+        margin-top: -1rem;
+        justify-content: flex-start;
+    }
+
+    .hover-shadow:hover {
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        transition: 0.3s;
+    }
+
+    .card-item {
+        flex: 0 0 calc((100% - 3 * 1.9rem) / 3); /* 3 cards per row */
+        max-width: calc((100% - 3 * 1.9rem) / 3);
+    }
+
+    @@media (max-width: 992px) {
+        .card-item {
+            flex: 0 0 calc((100% - 1.9rem) / 2);
+            max-width: calc((100% - 1.9rem) / 2);
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .card-item {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+    }
+</style>
+
+@* Quick Launch card stamp css *@
+<Style>
+    .stamp-card {
+        background: #fff;
+        border: 2px solid #4CAF50;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+        position: relative;
+        transition: all 0.25s ease-in-out;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+        /* ✨ Perforated edge effect (like a real stamp) */
+        .stamp-card::before,
+        .stamp-card::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 6px;
+            height: 80%;
+            background: repeating-radial-gradient( circle at center, transparent 0, transparent 2px, #fff 2px, #fff 4px );
+            transform: translateY(-50%);
+        }
+
+        .stamp-card::before {
+            left: -3px;
+        }
+
+        .stamp-card::after {
+            right: -3px;
+        }
+
+        /* Hover effect for realism */
+        .stamp-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25), inset 0 1px 3px rgba(255, 255, 255, 0.5);
+            background-color: #f8fff8;
+        }
+</Style>
+
+
+
+<link rel="stylesheet" href="~/css/CardSheet.css">
+
+@* Toast Message to show the error for Password Change *@
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+        //debugger;
+        // Show toast if message exists
+        var toastEl = document.getElementById('toastMessage');
+        if (toastEl && toastEl.innerText.trim() !== "") {
+        var toast = new bootstrap.Toast(toastEl);
+        toast.show();
+
+        }
+
+        // Show Change Password Modal if flag is set
+        var shouldShowModal = '@TempData["ShowChangePasswordModal"]';
+        if (shouldShowModal === 'true') {
+        var modal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+        modal.show();
+        }
+        });
+    </script>
+}
+
+
+
+<div class="container card-container" style="margin-top: 2.5rem;">
+
+    <div class="row">
+
+        <!-- Total Employee List Modal -->
+        @if (role == "Admin")
+        {
+            <div class="custom-col-5">
+                <div class="employee-card flip-card text-center d-flex flex-column justify-content-center align-items-center"
+                     data-bs-toggle="modal" data-bs-target="#employeeModal"
+                     style="background:#8a8bc2;height:70%;width:130%;margin-top:25px;border-radius:10px;">
+                    <i class="fas fa-users" style="font-size: 32px; color: white;"></i>
+                    <div class="label" style="font-weight:bold;margin-top:3px">Total Employees</div>
+                    <div class="text-4xl font-extrabold mt-1">@ViewBag.empCount</div>
+                </div>
+
+              
+
+                <!-- Total Employee List Modal -->
+                <div class="modal fade" id="employeeModal" tabindex="-1" aria-labelledby="employeeModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header text-white" style="background-color:#8a8bc2">
+                                <h5 class="modal-title" id="employeeModalLabel">Total Employee List</h5>
+                                <div class="ms-auto d-flex gap-2">
+
+                                    <div id="exportExcel" class="text-center" style="cursor:pointer;"
+                                         onclick="exportExcel('Total Employee List','#employeeTotalTable')" title="Excel">
+                                        <i class="fa fa-file-excel fa-1x"></i><br />
+                                    </div>
+                                    <div id="exportPdfAll" class="text-center" style="cursor:pointer;"
+                                         onclick="exportPdf('Total Employee List','#employeeTotalTable')" title="PDF">
+                                        <i class="fa fa-file-pdf fa-1x"></i><br />
+                                    </div>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                            </div>
+                            <div class="modal-body">
+                                <!-- Search box -->
+                                <div class="mb-3">
+                                    <input type="text" class="form-control" style="margin-top:-14px;margin-left:0px" placeholder="Search..."
+                                            onkeyup="searchTable('employeeTotalTable', this.value)">
+                                </div>
+                                <!-- You can render your list here dynamically -->
+                                <table class="table table-bordered table-striped" id="employeeTotalTable" style="margin-top:-15px">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Employee Name</th>
+                                            <th>Employee Id</th>
+                                            <th>Branch</th>
+                                            <th>Category</th>
+                                            <th>Department</th>
+                                            <th>Designation</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (ViewBag.AllEmpDetail != null)
+                                        {
+                                            int count = 1;
+                                            foreach (var emp in ViewBag.AllEmpDetail)
+                                            {
+                                                <tr style="font-size:12px">
+                                                    <td>@count</td>
+                                                    <td>@emp.EmpName</td>
+                                                    <td>@emp.EmpId</td>
+                                                    <td>@emp.Branch</td>
+                                                    <td>@emp.Category</td>
+                                                    <td>@emp.Department</td>
+                                                    <td>@emp.Designation</td>
+                                                </tr>
+                                                count++;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td colspan="6" class="text-center">No data found</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        }
+
+
+        <!-- Present Employee List Modal -->
+        @if (role == "Admin")
+        {
+            <div class="custom-col-5">
+                <div class="employee-card text-center d-flex flex-column justify-content-center align-items-center"
+                     data-bs-toggle="modal" data-bs-target="#employeePresentModal"
+                     style="background:#589d86;height:70%;width:130%;margin-top:25px">
+                    <i class="fas fa-check-circle" style="font-size: 32px; color: white;"></i>
+                    <div class="label" style="font-weight:bold;margin-top:3px">Employees Present</div>
+                    <div class="text-4xl font-extrabold mt-1">@ViewBag.empPresentCount</div>
+                </div>
+                <!-- Present Employee List Modal -->
+                <div class="modal fade" id="employeePresentModal" tabindex="-1" aria-labelledby="employeePresentModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content" style="width:110%">
+                            <div class="modal-header text-white" style="background-color:#589d86">
+                                <h5 class="modal-title" id="employeePresentModalLabel">Present Employee List</h5>
+                                    
+                                <div class="ms-auto d-flex gap-2">
+                                   
+                                    <div id="exportExcel" class="text-center" style="cursor:pointer;"
+                                         onclick="exportExcel('Present Employee List','#employeePresentTable')" title="Excel">
+                                        <i class="fa fa-file-excel fa-1x"></i><br />
+                                    </div>
+                                    <div id="exportPdfAll" class="text-center" style="cursor:pointer;"
+                                         onclick="exportPdf('Present Employee List','#employeePresentTable')" title="PDF">
+                                        <i class="fa fa-file-pdf fa-1x"></i><br />
+                                    </div>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+
+                            </div>
+                            <div class="modal-body">
+                                <!-- Search box -->
+                                <div class="mb-3">
+                                    <input type="text" class="form-control" style="margin-top:-14px;margin-left:0px" 
+                                        placeholder="Search..." onkeyup="searchTable('employeePresentTable', this.value)">
+                                </div>
+                                <!-- You can render your list here dynamically -->
+                                <table class="table table-bordered table-striped" id="employeePresentTable" style="margin-top:-15px">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Employee Name</th>
+                                            <th>Employee Id</th>
+                                            <th>Branch</th>
+                                            <th>Category</th>
+                                            <th>Department</th>
+                                            <th>Designation</th>
+                                            <th>Login</th>
+                                            <th>Logout</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (ViewBag.AttendanceDashBoard != null)
+                                        {
+                                            int count = 1;
+                                            foreach (var emp in ViewBag.AttendanceDashBoard)
+                                            {
+                                                string rowColor = emp.loginStatus == "Late" ? "background-color:#ffcccc" : "";
+                                                <tr style="font-size:12px;">
+                                                    <td>@count</td>
+                                                    <td style="@rowColor">@emp.sEmployeeName</td>
+                                                    <td style="@rowColor">@emp.sEmployeeCode</td>
+                                                    <td style="@rowColor">@emp.sBranch</td>
+                                                    <td style="@rowColor">@emp.sCategory</td>
+                                                    <td style="@rowColor">@emp.sDepartment</td>
+                                                    <td style="@rowColor">@emp.sDesignation</td>
+                                                    <td style="@rowColor">@emp.InTime.ToString("HH:mm")</td>
+                                                    @if (@emp.InTime.ToString("HH:mm") != @emp.OutTime.ToString("HH:mm"))
+                                                    {
+                                                        <td style="@rowColor">@emp.OutTime.ToString("HH:mm")</td>
+                                                    }
+                                                    else
+                                                    {
+                                                        <td>--</td>
+                                                    }
+                                                    <td style="@rowColor">@emp.loginStatus</td>
+                                                </tr>
+                                                count++;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td colspan="6" class="text-center">No data found</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+
+        <!-- Absent Employee List Modal -->
+        @if (role == "Admin")
+        {
+            <div class="custom-col-5">
+                <div class="employee-card text-center d-flex flex-column justify-content-center align-items-center"
+                     data-bs-toggle="modal" data-bs-target="#employeeAbsentModal"
+                     style="background:#bd3f3f;height:70%;width:130%;margin-top:25px">
+                    <i class="fas fa-times-circle" style="font-size: 32px; color: white;"></i>
+                    <div class="label" style="font-weight:bold;margin-top:3px">Employees Absent</div>
+                    <div class="text-4xl font-extrabold mt-1">@ViewBag.AbsentEmployeeCount</div>
+                </div>
+                <!-- Absent Employee List Modal -->
+                <div class="modal fade" id="employeeAbsentModal" tabindex="-1" aria-labelledby="employeeAbsentModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header text-white" style="background-color:#bd3f3f">
+                                <h5 class="modal-title" id="employeeAbsentModalLabel">Absent Employee List</h5>
+                                <div class="ms-auto d-flex gap-2">
+                                   
+                                    <div id="exportExcel" class="text-center" style="cursor:pointer;"
+                                         onclick="exportExcel('Absent Employee List','#employeeAbsentTable')" title="Excel">
+                                        <i class="fa fa-file-excel fa-1x"></i><br />
+                                    </div>
+                                    <div id="exportPdfAll" class="text-center" style="cursor:pointer;"
+                                         onclick="exportPdf('Absent Employee List','#employeeAbsentTable')" title="PDF">
+                                        <i class="fa fa-file-pdf fa-1x"></i><br />
+                                    </div>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                            </div>
+
+                            <div class="modal-body">
+                                 <!-- Search box -->
+                                <div class="mb-3">
+                                    <input type="text" class="form-control" style="margin-top:-14px;margin-left:0px" placeholder="Search..."
+                                            onkeyup="searchTable('employeeAbsentTable', this.value)">
+                                </div>
+                                <!-- You can render your list here dynamically -->
+                                <table class="table table-bordered table-striped" id="employeeAbsentTable" style="margin-top:-15px">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Employee Name</th>
+                                            <th>Employee Id</th>
+                                            <th>Branch</th>
+                                            <th>Catgory</th>
+                                            <th>Department</th>
+                                            <th>Designation</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (ViewBag.AbsentEmployeeDetail != null)
+                                        {
+                                            int count = 1;
+                                            foreach (var emp in ViewBag.AbsentEmployeeDetail)
+                                            {
+                                                <tr style="font-size:12px">
+                                                    <td>@count</td>
+                                                    <td>@emp.EmpName</td>
+                                                    <td>@emp.EmpId</td>
+                                                    <td>@emp.Branch</td>
+                                                    <td>@emp.Category</td>
+                                                    <td>@emp.Department</td>
+                                                    <td>@emp.Designation</td>
+                                                </tr>
+                                                count++;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td colspan="6" class="text-center">No data found</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+
+        <!-- Late-In Employee List Modal -->
+        @if (role == "Admin")
+        {
+            <div class="custom-col-5">
+                <div class="employee-card text-center d-flex flex-column justify-content-center align-items-center"
+                     data-bs-toggle="modal" data-bs-target="#employeeLateinModal"
+                     style="background:#d97f41;height:70%;width:130%;margin-top:25px">
+                    <i class="fas fa-clock" style="font-size: 32px; color: white;"></i>
+                    <div class="label" style="font-weight:bold;margin-top:3px">Late In</div>
+                    <div class="text-4xl font-extrabold mt-1">@ViewBag.empLatein</div>
+                </div>
+                <!-- Late In Employee List Modal -->
+                <div class="modal fade" id="employeeLateinModal" tabindex="-1" aria-labelledby="employeeLateinModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header text-white" style="background-color:#d97f41">
+                                <h5 class="modal-title" id="employeeLateinModalLabel">Late-In Employee List</h5>
+                                <div class="ms-auto d-flex gap-2">
+                                  
+
+                                    <div id="exportExcel" class="text-center" style="cursor:pointer;"
+                                         onclick="exportExcel('Late-In Employee List','#employeeLateinTable')" title="Excel">
+                                        <i class="fa fa-file-excel fa-1x"></i><br />
+                                    </div>
+                                    <div id="exportPdfAll" class="text-center" style="cursor:pointer;"
+                                         onclick="exportPdf('Late-In Employee List','#employeeLateinTable')" title="PDF">
+                                        <i class="fa fa-file-pdf fa-1x"></i><br />
+                                    </div>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+
+                            </div>
+
+                            <div class="modal-body">
+                                <!-- Search box -->
+                                <div class="mb-3">
+                                    <input type="text" class="form-control" style="margin-top:-14px;margin-left:0px" placeholder="Search..."
+                                            onkeyup="searchTable('employeeLateinTable', this.value)">
+                                </div>
+                                <!-- You can render your list here dynamically -->
+                                <table class="table table-bordered table-striped" id="employeeLateinTable" style="margin-top:-15px">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Employee Name</th>
+                                            <th>Employee Id</th>
+                                            <th>Branch</th>
+                                            <th>Catgory</th>
+                                            <th>Department</th>
+                                            <th>Designation</th>
+                                            <th>Shift-in-Time</th>
+                                            <th>Login</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (ViewBag.LateinEmployeeDetail != null)
+                                        {
+                                            int count = 1;
+                                            foreach (var emp in ViewBag.LateinEmployeeDetail)
+                                            {
+                                                <tr style="font-size:12px">
+                                                    <td>@count</td>
+                                                    <td>@emp.sEmployeeName</td>
+                                                    <td>@emp.sEmployeeCode</td>
+                                                    <td>@emp.sBranch</td>
+                                                    <td>@emp.sCategory</td>
+                                                    <td>@emp.sDepartment</td>
+                                                    <td>@emp.sDesignation</td>
+                                                    <td>@emp.sInTime.ToString("HH:mm")</td>
+                                                    <td>@emp.InTime.ToString("HH:mm")</td>
+
+                                                </tr>
+                                                count++;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td colspan="6" class="text-center">No data found</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+
+        <!-- Early-Out Employee List Modal -->
+        @if (role == "Admin")
+        {
+            <div class="custom-col-5">
+                <div class="employee-card text-center d-flex flex-column justify-content-center align-items-center"
+                     data-bs-toggle="modal" data-bs-target="#employeeearlyOutModal"
+                     style="background:#d2b84e;height:70%;width:130%;margin-top:25px">
+                    <i class="fas fa-sign-out-alt" style="font-size: 32px; color: white;"></i>
+                    <div class="label" style="font-weight:bold;margin-top:3px">Early Out</div>
+                    <div class="text-4xl font-extrabold mt-1">@ViewBag.empEarlyout</div>
+                </div>
+                <!-- Late In Employee List Modal -->
+                <div class="modal fade" id="employeeearlyOutModal" tabindex="-1" aria-labelledby="employeeearlyOutModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header text-white" style="background-color:#d2b84e">
+                                <h5 class="modal-title" id="employeeearlyOutModalLabel">Early-Out Employee List</h5>
+                                <div class="ms-auto d-flex gap-2">
+                                    
+
+                                    <div id="exportExcel" class="text-center" style="cursor:pointer;"
+                                         onclick="exportExcel('Early-Out Employee List','#employeeEarlyoutTable')" title="Excel">
+                                        <i class="fa fa-file-excel fa-1x"></i><br />
+                                    </div>
+                                    <div id="exportPdfAll" class="text-center" style="cursor:pointer;"
+                                         onclick="exportPdf('Early-Out Employee List','#employeeEarlyoutTable')" title="PDF">
+                                        <i class="fa fa-file-pdf fa-1x"></i><br />
+                                    </div>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                            </div>
+
+                            <div class="modal-body">
+                                <!-- Search box -->
+                                <div class="mb-3">
+                                    <input type="text" class="form-control" style="margin-top:-14px;margin-left:0px" placeholder="Search..."
+                                            onkeyup="searchTable('employeeEarlyoutTable', this.value)">
+                                </div>
+                                <!-- You can render your list here dynamically -->
+                                <table class="table table-bordered table-striped" id="employeeEarlyoutTable" style="margin-top:-15px">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Employee Name</th>
+                                            <th>Employee Id</th>
+                                            <th>Branch</th>
+                                            <th>Catgory</th>
+                                            <th>Department</th>
+                                            <th>Designation</th>
+                                            <th>Shift-out-Time</th>
+                                            <th>Logout</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (ViewBag.EarlyOutEmployeeDetail != null)
+                                        {
+                                            int count = 1;
+                                            foreach (var emp in ViewBag.EarlyOutEmployeeDetail)
+                                            {
+                                                <tr style="font-size:12px">
+                                                    <td>@count</td>
+                                                    <td>@emp.sEmployeeName</td>
+                                                    <td>@emp.sEmployeeCode</td>
+                                                    <td>@emp.sBranch</td>
+                                                    <td>@emp.sCategory</td>
+                                                    <td>@emp.sDepartment</td>
+                                                    <td>@emp.sDesignation</td>
+                                                    <td>@emp.sOutTime.ToString("HH:mm")</td>
+                                                    <td>@emp.OutTime.ToString("HH:mm")</td>
+
+                                                </tr>
+                                                count++;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td colspan="6" class="text-center">No data found</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+
+    </div>
+
+    <div class="row" style="width: 100%; margin: 0;">
+    
+    @if (role == "Admin")
+        {
+            <!-- Column 1: Attendance Pie Chart (40%) -->
+            <div class="employee-card text-center w-100" style="background:#f8fafc; margin-top:-11px;margin-left:30px">
+                <canvas id="attendancePieChart" style="display:block; box-sizing:border-box; width:100%"></canvas>
+            </div>
+
+            <!-- Column 2: Employee Attendance Chart (60%) -->
+            <div class="employee-card text-center w-100" style="background:#f8fafc; margin-top:-11px;max-width:650px;margin-left:135px">
+                <canvas id="employeeAttendanceChart" style="display:block; box-sizing:border-box; width:100%"></canvas>
+            </div>
+        }
+    
+
+    </div>
+
+  
+
+    @*---Quick Launch---*@
+    @if (role == "Admin")
+    {
+        <div class="container my-4" style="margin-left:20px">
+            <h5>Quick Launch</h5>
+            <div class="row g-3">
+                <!-- Card 1 -->
+                <div class="col-6 col-md-3" style="width:20%">
+                    <a href="~/Employee/EmployeePage" class="text-decoration-none">
+                        <div class="card stamp-card d-flex align-items-center justify-content-center p-2 hover-shadow" style="height: 30px; flex-direction: row; gap: 8px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none">
+                                <!-- Head -->
+                                <circle cx="12" cy="8" r="4" fill="#4CAF50" />
+                                <!-- Body -->
+                                <path d="M4 20c0-4 4-6 8-6s8 2 8 6H4z" fill="#81C784" />
+                            </svg>
+                            <div style="font-weight: bold;">EMPLOYEES</div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="col-6 col-md-3" style="margin-left:80px;width:20%">
+                    <a href="~/Reports/AttendanceReport" class="text-decoration-none">
+                        <div class="card stamp-card d-flex align-items-center justify-content-center p-2 hover-shadow" style="height: 30px; flex-direction: row; gap: 8px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="25" height="25" role="img" aria-label="Monthly attendance report">
+
+                                <!-- background calendar -->
+                                <rect x="2" y="4" width="20" height="18" rx="2" fill="#E3F2FD" stroke="#1565C0" stroke-width="1.5" />
+                                <rect x="3" y="7" width="18" height="3" rx="1" fill="#1565C0" />
+                                <path d="M7 2v3M17 2v3" stroke="#1565C0" stroke-width="1.5" stroke-linecap="round" />
+                                <!-- inside: M -->
+                                <text x="6" y="16" font-family="Arial, Helvetica, sans-serif" font-size="7" fill="#1565C0" font-weight="bold">M</text>
+                                <!-- report bars -->
+                                <rect x="13" y="14" width="2" height="4" rx="0.3" fill="#43A047" />
+                                <rect x="16" y="12" width="2" height="6" rx="0.3" fill="#43A047" />
+                                <rect x="19" y="10" width="2" height="8" rx="0.3" fill="#43A047" />
+                            </svg>
+
+                            <div style="font-weight: bold;">MONTHLY ATTENDANCE</div>
+                        </div>
+                    </a>
+                </div>
+                
+                <!-- Card 3 -->
+                <div class="col-6 col-md-3" style="margin-left:80px;width:20%">
+                    <a href="~/Reports/AttendanceReportDateRange" class="text-decoration-none">
+                        <div class="card stamp-card d-flex align-items-center justify-content-center p-2 hover-shadow" style="height: 30px; flex-direction: row; gap: 8px;">
+                            @* <i class="fa fa-money-bill fa-lg mb-1"></i> *@
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="25" height="25" role="img" aria-label="Attendance report monthly - custom date range">
+                                <!-- calendar background -->
+                                <rect x="2" y="3" width="24" height="20" rx="3" fill="#EAF4FF" stroke="#1976D2" stroke-width="1.4" />
+                                <!-- calendar header -->
+                                <rect x="2" y="3" width="24" height="4.6" rx="2" fill="#1976D2" />
+                                <!-- small grid -->
+                                <line x1="6" y1="10" x2="22" y2="10" stroke="#1976D2" stroke-width="0.9" />
+                                <line x1="10" y1="7.8" x2="10" y2="17" stroke="#1976D2" stroke-width="0.9" />
+                                <line x1="14.5" y1="7.8" x2="14.5" y2="17" stroke="#1976D2" stroke-width="0.9" />
+
+                                <!-- left date pill (start) -->
+                                <rect x="4.6" y="18.4" rx="2.6" ry="2.6" width="7.6" height="4.6" fill="#fff" stroke="#0288D1" stroke-width="0.9" />
+                                <text x="8.4" y="21.1" font-family="Segoe UI, Arial" font-size="2.6" fill="#0288D1" text-anchor="middle">1</text>
+
+                                <!-- arrow between pills -->
+                                <path d="M15.2 20.7 L17 20.7 L16.1 19.6 Z" fill="#616161" />
+
+                                <!-- right date pill (end) -->
+                                <rect x="18" y="18.4" rx="2.6" ry="2.6" width="5.2" height="4.6" fill="#43A047" stroke="#2E7D32" stroke-width="0.9" />
+                                <text x="20.6" y="21.1" font-family="Segoe UI, Arial" font-size="2.6" fill="#ffffff" text-anchor="middle">31</text>
+                            </svg>
+                            <div style="font-weight: bold;">DATEWISE ATTENDANCE</div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="col-6 col-md-3" style="margin-left:80px;width:20%">
+                    <a href="~/ShiftAllocation/Create" class="text-decoration-none">
+                        <div class="card stamp-card d-flex align-items-center justify-content-center p-2 hover-shadow" style="height: 30px; flex-direction: row; gap: 8px;">
+                            @* <i class="fa fa-money-bill fa-lg mb-1"></i> *@
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="25" height="25" role="img" aria-label="Attendance report monthly - custom date range">
+                                <!-- calendar background -->
+                                <rect x="2" y="3" width="24" height="20" rx="3" fill="#EAF4FF" stroke="#1976D2" stroke-width="1.4" />
+                                <!-- calendar header -->
+                                <rect x="2" y="3" width="24" height="4.6" rx="2" fill="#1976D2" />
+                                <!-- small grid -->
+                                <line x1="6" y1="10" x2="22" y2="10" stroke="#1976D2" stroke-width="0.9" />
+                                <line x1="10" y1="7.8" x2="10" y2="17" stroke="#1976D2" stroke-width="0.9" />
+                                <line x1="14.5" y1="7.8" x2="14.5" y2="17" stroke="#1976D2" stroke-width="0.9" />
+
+                                <!-- left date pill (start) -->
+                                <rect x="4.6" y="18.4" rx="2.6" ry="2.6" width="7.6" height="4.6" fill="#fff" stroke="#0288D1" stroke-width="0.9" />
+                                <text x="8.4" y="21.1" font-family="Segoe UI, Arial" font-size="2.6" fill="#0288D1" text-anchor="middle">1</text>
+
+                                <!-- arrow between pills -->
+                                <path d="M15.2 20.7 L17 20.7 L16.1 19.6 Z" fill="#616161" />
+
+                                <!-- right date pill (end) -->
+                                <rect x="18" y="18.4" rx="2.6" ry="2.6" width="5.2" height="4.6" fill="#43A047" stroke="#2E7D32" stroke-width="0.9" />
+                                <text x="20.6" y="21.1" font-family="Segoe UI, Arial" font-size="2.6" fill="#ffffff" text-anchor="middle">31</text>
+                            </svg>
+                            <div style="font-weight: bold;">Shift Allocation</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .hover-shadow:hover {
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                transition: 0.3s;
+            }
+        </style>
+
+    }
+
+
+    @if (role == "Admin@1")
+
+    {
+        <!-- Department Card -->
+        <div class="card shadow-sm rounded" style="width: 300px;height:265px;top:-1px;background-color:#575357" id="departmentCard">
+            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Department</h5>
+                @* <button class="btn btn-sm btn-primary" id="btnRefreshDept">
+                        <svg id="refreshIconDept" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 1 0-.908-.418A6 6 0 1 0 8 2v1z" />
+                            <path d="M8 0a.5.5 0 0 0-.5.5v3.707L6.354 3.061a.5.5 0 1 0-.708.708l2 2a.5.5 0 0 0 .708 0l2-2a.5.5 0 0 0-.708-.708L8.5 4.207V.5A.5.5 0 0 0 8 0z" />
+                        </svg>
+                    </button> *@
+            </div>
+            <div class="card-body py-2 px-3" id="cardBodyDept" style="font-size: 0.9rem;">
+                <div style="width:296px;margin-left:-15px;margin-top:-5px; overflow-y: auto;max-height:248px" id="scrollContainer">
+                    @if (ViewBag.Department != null)
+                    {
+                        <ul id="deptCard" class="list-group">
+                            @foreach (var item in ViewBag.Department)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>@item.sName</strong><br />
+                                        <small>@item.sName-@item.sCode</small>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p>No employees found.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+
+    @if (role == "Admin@1")
+    {
+        <!-- Shift Card -->
+        <div class="card shadow-sm rounded" style="width: 255px;height:288px;background-color:#575357" id="shiftCard">
+            <div class="card-header card-header-height bg-secondary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Shift</h5>
+                @*  <button class="btn btn-sm btn-light" id="toggleButtonShift" title="Minimize">
+                    <i class="bi bi-dash-lg" id="toggleIconSift"></i>
+                </button> *@
+            </div>
+            <div class="card-body py-2 px-3" id="cardBodyShift" style="font-size: 0.9rem; ">
+                <div style="width:250px;margin-left:-15px;margin-top:-6px; overflow-y: auto;max-height:227px" id="scrollContainerShift">
+                    @if (ViewBag.Shift != null)
+                    {
+                        <ul class="list-group">
+                            @foreach (var item in ViewBag.Shift)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center" style="width:250px">
+                                    <div>
+                                        <strong>@item.sShiftName</strong><br />
+                                        <small>In-Time: @item.sStartTime</small>
+                                        <small>Out-Time: @item.sEndTime</small>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p>No locations found.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+
+    @if (role == "Admin@1")
+    {
+        <!-- Attendance Card -->
+        <div class="card shadow-sm rounded" style="width: 400px;height:288px;background-color:#575357" id="attendanceCard">
+            <div class="card-header card-header-height bg-secondary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Today Attendance</h5>
+                <input type="text" id="attendanceSearch" class="form-control mb-2" placeholder="Search..."
+                       style="font-size: 12px; height: 30px;width:90px">
+            </div>
+
+            <div class="card-body py-2 px-3" id="cardBodyattendance" style="font-size: 0.9rem; ">
+
+                <div style="max-height: 230px; overflow-y: auto;width:395px;margin-left:-15px;margin-top:-10px" id="scrollContainerAttendance">
+                    <div class="table-responsive" style="font-size:12px">
+                        <table id="dbTable" class="table table-hover table-bordered">
+                            <thead class="custom-header" style="font-size:12px">
+                                <tr>
+                                    <th style="background-color:#dee2e6"> Employee Name</th>
+                                    <th style="background-color:#dee2e6;display:none"> Employee Code</th>
+                                    <th style="background-color:#dee2e6"> Category</th>
+                                    <th style="background-color:#dee2e6"> Login Time</th>
+                                    <th style="background-color:#dee2e6"> Login Status</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @if (ViewBag.AttendanceDashBoard != null)
+                                {
+                                    @foreach (var item in ViewBag.AttendanceDashBoard)
+                                    {
+                                        string rowColor = @item.loginStatus switch
+                                        {
+                                            "Ontime" => "background-color: #10b981 !important;color:#FFFFFF",     // light green
+                                            "Late" => "background-color: #ef4444 !important;color:#FFFFFF",    // light red
+
+                                            _ => ""
+                                        };
+
+                                        DateTime @dt = @item.InTime;
+
+                                        <tr style="font-weight:bold;font-size:10px">
+                                            <td>@item.sEmployeeName</td>
+                                            <td style="display:none">@item.sEmployeeCode</td>
+                                            <td>@item.sCategory</td>
+                                            <td> @dt.TimeOfDay</td>
+                                            <td style="@rowColor" class="login-status">@item.loginStatus</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <p>No Attendance found.</p>
+                                }
+                            </tbody>
+
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+
+    @if (role == "Admin@1")
+    {
+        <!--Employee Expense Alert Dashboard Starts-->
+        <div class="card shadow-sm rounded" style="width: 500px;height:265px;top:-15px;background-color:#575357" id="ExpenseAlertCard">
+            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Expense Alert</h5>
+            </div>
+            <div class="card-body py-2 px-3" id="cardBodyExpenseAlert" style="font-size: 0.9rem; ">
+                <div style="max-height: 230px; overflow-y: auto;width:495px;margin-left:-15px;margin-top:-10px" id="scrollContainerExpenseAlert">
+                    <div class="table-responsive" style="font-size:12px">
+                        <table id="dbTableExpense" class="table table-striped table-hover">
+                            <thead style="font-size:10px">
+                                <tr>
+                                    <th style="background-color:#dee2e6"> Sno</th>
+                                    <th style="background-color:#dee2e6"> Employee</th>
+                                    <th style="background-color:#dee2e6"> Expense Date/th>
+                                    <th style="background-color:#dee2e6"> Description</th>
+                                    <th style="background-color:#dee2e6"> Requested Amount</th>
+                                    <th style="background-color:#dee2e6" hidden> id</th>
+                                    <th style="background-color:#dee2e6"> Action</th>
+                                </tr>
+                            </thead>
+
+                            <tbody style="font-size:10px">
+                                @if (ViewBag.expenseAlertAdmin != null)
+                                {
+                                    @foreach (var item in ViewBag.expenseAlertAdmin)
+                                    {
+                                        <tr>
+                                            <td>@item.Sno</td>
+                                            <td> @item.EmployeeName</td>
+                                            <td> @item.ExpenseDate</td>
+                                            <td>@item.Description</td>
+                                            <td> @item.RequestedAmount</td>
+
+                                            <td style="display:none"> @item.id</td>
+                                            <td style="display: flex; gap: 5px; justify-content: center; align-items: center;">
+
+                                                <button class="btn  btnApproveExp" data-id="@item.id">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="green" viewBox="0 0 24 24">
+                                                        <path d="M20.285 6.709l-11.285 11.291-5.285-5.291 1.415-1.418 3.87 3.877 9.87-9.877z" />
+                                                    </svg>
+                                                </button>
+                                                <button class="btn  btnRejectExp" data-id="@item.id">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="red" viewBox="0 0 24 24">
+                                                        <path d="M18.364 5.636l-1.414-1.414L12 9.172 7.05 4.222 5.636 5.636 10.586 10.586 5.636 15.536l1.414 1.414L12 12.828l4.95 4.95 1.414-1.414-4.95-4.95z" />
+                                                    </svg>
+                                                </button>
+
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <p>No record found.</p>
+                                }
+                            </tbody>
+
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="expenseRemarksModal" tabindex="-1" role="dialog" aria-labelledby="expenseRemarksModal" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="remarksModalLabel">Accept/Reject</h5>
+
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="modalId" />
+                        <input type="hidden" id="modalActionType" />
+                        <div class="form-group">
+                            <label for="modalAmount">Amount Approved</label>
+                            @* <textarea class="form-control" id="modalAmount" rows="3" placeholder="Amount"></textarea> *@
+                            <input type="number" class="form-control" id="modalAmount" rows="3" placeholder="Amount"></input>
+                        </div>
+                        <div class="form-group">
+                            <label for="modalRemarks">Remarks</label>
+                            <textarea class="form-control" id="modalRemarks" rows="3" placeholder="Enter your remarks"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="submitexpenseRemarks" class="btn btn-primary">Submit</button>
+                        <button type="button" class="btn btn-secondary" onclick="$('#expenseRemarksModal').modal('hide')">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--Employee Expense Alert Dashboard Ends-->
+    }
+
+
+    @if (role == "Employee" || role == "Manager" || hrrole == "1")
+    {
+
+        <!--Employee Log Info Starts-->
+        @if (role == "Employee")
+        {
+            <div class="row" style="width: 100%; margin: 0;margin-top:-70px;margin-left:-13px">
+                
+                <div class="container mt-4">
+                    <div class="row g-4 align-items-start">
+
+                        <!-- Left: Attendance Chart -->
+                        <div class="col-md-9">
+                            <div class="card shadow-lg border-0 rounded-3" style="height:325px">
+                                <div class="card-body">
+                                 
+                                    <canvas id="attendanceChart" height="100"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Today's Attendance -->
+                        <div class="col-md-3">
+                            <div class="card shadow-lg border-0 rounded-3" style="height:325px">
+                                <div class="card-body text-center p-2" style="margin-top:-16px">
+
+                                    <!-- Employee Photo -->
+                                    <div class="mb-2 d-flex justify-content-center" style="margin-top: 12px;">
+                                        <img src="@ViewBag.EmployeePhoto" alt="Employee Photo"
+                                             class="rounded-circle shadow-sm"
+                                             style="width: 80px; height: 80px; object-fit: cover;">
+                                    </div>
+
+                                    <!-- Employee Info -->
+                                    <h6 class="card-title mb-1 fw-semibold" style="font-size: 0.9rem;">@ViewBag.EmployeeName</h6>
+                                    <p class="text-muted mb-2" style="font-size: 0.8rem;">@ViewBag.EmployeeDesignation</p>
+
+                                    <!-- Clock In -->
+                                    <div class="mb-2">
+                                        <h6 class="text-muted mb-1" style="font-size: 0.75rem;">Clock In</h6>
+                                        <h5 id="loginTime" class="text-success fw-bold" style="font-size: 1rem;">
+                                            @(ViewBag.LoginTime == "00:00:00" || string.IsNullOrEmpty(ViewBag.LoginTime)
+                                                ? "00:00:00": ViewBag.LoginTime)
+                                    </h5>
+                                    </div>
+
+                                    <!-- Total Time Worked -->
+                                    <div>
+                                        <h6 class="text-muted mb-1" style="font-size: 0.75rem;">Total Time Worked</h6>
+                                        <h5 id="workClock" class="fw-bold text-dark" style="font-family: 'Digital-7', monospace; font-size: 1.2rem;">00:00:00</h5>
+                                    </div>
+
+                                     <!-- Analogue Clock -->
+                                    <div class="d-flex justify-content-center mt-1">
+                                        <canvas id="analogClock" width="70" height="70"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+
+                @* Login Punch *@
+               @*  <div class="col-md-4" style="margin-top: 10px;">
+                    <div class="card shadow-lg border-0 rounded-4 p-3">
+                        <h5 class="text-center mb-3"><i class="fa fa-map-marker-alt text-primary"></i> Attendance Punch</h5>
+
+                        <div class="d-flex justify-content-around mb-3">
+                            <button id="btnLoginPunch" class="btn btn-success px-4 py-2 rounded-3 shadow-sm">
+                                <i class="fa fa-sign-in-alt"></i> Login
+                            </button>
+                            <button id="btnLogoutPunch" class="btn btn-danger px-4 py-2 rounded-3 shadow-sm">
+                                <i class="fa fa-sign-out-alt"></i> Logout
+                            </button>
+                        </div>
+
+                        <div id="punchStatus" class="text-center small text-muted"></div>
+                    </div>
+                </div> *@
+
+                
+
+            </div>
+
+            <!--Attendance Calander-->
+            <div class="card shadow-sm rounded" style="width: 402px;height:265px;top:0px;background-color:white" id="Timecard">
+                <div class="card-header text-black d-flex justify-content-between align-items-center" 
+                    style="height:30px;background-color:white">
+                    <h5 class="mb-0">Attendance Calender</h5>
+                </div>
+
+                <div class="card-body p-0" style="width: 398px;">
+                    <div style="overflow-x: auto;height:232px;width:400px">
+
+                        <table class="table table-sm table-bordered text-center mb-0"
+                               style="height:230px;margin-left:0px; table-layout: fixed; width: 100%;">
+                            <thead style="font-size:10px">
+                                <tr>
+                                    @foreach (var day in Enum.GetValues(typeof(DayOfWeek)))
+                                    {
+                                        <th style="width: 14.28%;">@CultureInfo.CurrentCulture.DateTimeFormat.AbbreviatedDayNames[(int)day]</th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    int dayCounter = 1;
+                                    bool started = false;
+                                }
+                                @for (int week = 0; dayCounter <= daysInMonth;)
+                                {
+                                    <tr>
+                                        @for (int i = 0; i < 7; i++)
+                                        {
+                                            if (!started && i == firstDayOfWeek)
+                                                started = true;
+
+                                            if (started && dayCounter <= daysInMonth)
+                                            {
+                                                var currentDate = new DateTime(year, month, dayCounter);
+                                                //var entry = Model.FirstOrDefault(t => Convert.ToDateTime(t.LogDate) == currentDate.Date);
+                                                var entry = Model.Where(d => d.LogDate == currentDate.Date.ToString("dd-MM-yyyy")).ToList();
+
+                                                string? remark = entry != null && entry.Count > 0 ? entry[0].Remakrs : string.Empty;
+                                                string cellClass = "calendar-cell";
+                                                if (remark.Contains("Public Holiday"))
+                                                {
+                                                    cellClass += " bg-holiday";
+                                                }
+                                                else if (remark.Contains("Absent"))
+                                                {
+                                                    cellClass += " bg-absent";
+                                                }
+                                                else if (remark.Contains("Late In"))
+                                                {
+                                                    cellClass += " bg-late";
+
+                                                }
+                                                else if (remark.Contains("On Time"))
+                                                {
+                                                    cellClass += " bg-present";
+                                                }
+                                                else if (remark.Contains("Leave"))
+                                                {
+                                                    cellClass += " bg-leave";
+                                                }
+
+                                                <td class="@cellClass"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-html="true"
+                                                    data-bs-placement="top"
+                                                    title="Login: @(entry.Any() ? entry[0].InTime.ToString("HH:mm") : "--")<br/>
+                                                        Logout: @(entry.Any() ? entry[0].OutTime.ToString("HH:mm") : "--")<br/>
+                                                        Remarks: @(entry.Any() ? entry[0].Remakrs : "--")">
+
+                                                        <strong>@dayCounter</strong><br />
+                                                        @if (entry != null)
+                                                        {
+                                                            <span>@(entry[0].Remakrs)</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-danger">Absent</span>
+                                                        }
+                                                    </td>
+                                                dayCounter++;
+                                            }
+                                            else
+                                            {
+                                                <td></td>
+                                            }
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+
+                    </div>
+
+                </div>
+                
+            </div>
+           
+        }
+        <!--Employee Log Info Ends-->
+
+        <!--Team Member Leave AlertS Start-->
+        <div class="card shadow-sm rounded" style="width: 500px;height:265px;top:0px;background-color:#fff" id="leaveAlertCard">
+            <div class="card-header text-black d-flex justify-content-between align-items-center"
+                 style="height:30px;background-color:white">
+                <h5 class="mb-0">Sub-Ordinate Leave Application Alert</h5>
+            </div>
+            <div class="card-body py-2 px-3" id="cardBodyLeaveAlert" style="font-size: 0.9rem; ">
+                <div style="max-height: 230px; overflow-y: auto;width:497px;margin-left:-15px;margin-top:-7px" id="scrollContainerleaveAlert">
+                    <div class="table-responsive" style="font-size:12px">
+                        <table id="dbTableLeave" class="table table-striped table-hover">
+                            <thead style="font-size:10px">
+                                <tr>
+                                    <th style="background-color:#ffff"> Employee Name</th>
+                                    <th style="background-color:#ffff"> Leave Date</th>
+                                    <th style="background-color:#ffff"> Remarks</th>
+                                    <th style="background-color:#ffff"> Leave Type</th>
+                                    <th style="background-color:#ffff"> Leave Status</th>
+                                    <th style="background-color:#ffff"> Leave Id</th>
+                                    <th style="background-color:#ffff"> Action</th>
+                                </tr>
+                            </thead>
+
+                            <tbody style="font-size:10px">
+                                @if (ViewBag.LeaveAlert != null)
+                                {
+                                    @foreach (var item in ViewBag.LeaveAlert)
+                                    {
+                                        <tr>
+                                            <td>@item.EmployeeName</td>
+                                            <td>@item.LeaveDate</td>
+                                            <td> @item.Remarks</td>
+                                            <td> @item.LeaveType</td>
+                                            <td> @item.LeaveStatus</td>
+                                            <td> @item.LeaveId</td>
+                                            <td style="display: flex; gap: 5px; justify-content: center; align-items: center;">
+                                                <button class="btn  btnApprove" data-id="@item.LeaveId">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="green" viewBox="0 0 24 24">
+                                                        <path d="M20.285 6.709l-11.285 11.291-5.285-5.291 1.415-1.418 3.87 3.877 9.87-9.877z" />
+                                                    </svg>
+                                                </button>
+                                                <button class="btn  btnReject" data-id="@item.LeaveId">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="red" viewBox="0 0 24 24">
+                                                        <path d="M18.364 5.636l-1.414-1.414L12 9.172 7.05 4.222 5.636 5.636 10.586 10.586 5.636 15.536l1.414 1.414L12 12.828l4.95 4.95 1.414-1.414-4.95-4.95z" />
+                                                    </svg>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <p>No record found.</p>
+                                }
+                            </tbody>
+
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="remarksModal" tabindex="-1" role="dialog" aria-labelledby="remarksModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="remarksModalLabel">Enter Remarks</h5>
+
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="modalLeaveId" />
+                        <input type="hidden" id="modalActionType" />
+                        <div class="form-group">
+                            <label for="modalRemarks">Remarks</label>
+                            <textarea class="form-control" id="modalRemarks" rows="3" placeholder="Enter your remarks"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="submitRemarks" class="btn btn-primary">Submit</button>
+
+                        <button type="button" class="btn btn-secondary" onclick="$('#remarksModal').modal('hide')">Cancel</button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!--Team Member Leave Alert Ends-->
+
+        <!--Employee Leave Alert Start-->
+        <div class="card shadow-sm rounded" style="width: 500px;height:265px;top:0px;background-color:#fff" id="leaveAlertCard">
+            <div class="card-header text-black d-flex justify-content-between align-items-center"
+                 style="height:30px;background-color:white">
+                <h5 class="mb-0">Leave Application Alert</h5>
+            </div>
+            <div class="card-body py-2 px-3" id="cardBodyLeaveAlert" style="font-size: 0.9rem; ">
+                <div style="max-height: 230px; overflow-y: auto;width:497px;margin-left:-15px;margin-top:-7px" id="scrollContainerleaveAlert">
+                    <div class="table-responsive" style="font-size:12px">
+                        <table id="dbTableLeave" class="table table-striped table-hover">
+                            <thead style="font-size:10px">
+                                <tr>
+                                    <th style="background-color:#ffff;width:70px"> Leave Date</th>
+                                    <th style="background-color:#ffff;width:100px"> Reason</th>
+                                    <th style="background-color:#ffff"> Leave Type</th>
+                                    <th style="background-color:#ffff"> Leave Status</th>
+                                    <th style="background-color:#ffff"> Approved/Rejected By</th>
+                                    <th style="background-color:#ffff"> Approved/Rejected Reason</th>
+                                </tr>
+                            </thead>
+
+                            <tbody style="font-size:10px">
+                                @if (ViewBag.EmployeeLeaveStatus != null)
+                                {
+                                    @foreach (var item in ViewBag.EmployeeLeaveStatus)
+                                    {
+                                        string cellColor = "";
+                                        if (@item.Status=="Approved")
+                                        {
+                                            cellColor = "style=background-color:#c8e6c9";
+                                        }
+                                        else if (@item.Status == "Rejected")
+                                        {
+                                            cellColor = "style=background-color:red";
+                                        }
+                                        else if (@item.Status == "Pending")
+                                        {
+                                            cellColor = "style=background-color:yellow";
+                                        }
+
+                                        <tr>
+                                            <td>@item.LeaveDate</td>
+                                            <td>@item.Reason</td>
+                                            
+                                            <td> @item.LeaveType</td>
+                                            <td @cellColor> @item.Status</td>
+                                            <td> @item.ApprovedRejectedBy</td>
+                                            <td> @item.AppRejReason</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <p>No record found.</p>
+                                }
+                            </tbody>
+
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--Employee Leave AlertS Ends-->
+
+        if (role == "Employee1")
+        {
+            
+            <!--Employee Expense Alert Dashboard Starts-->
+            <div class="card shadow-sm rounded" style="width: 500px;height:265px;top:2px;background-color:#575357" id="ExpenseAlertCard">
+                <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Expense Alert</h5>
+                </div>
+                <div class="card-body py-2 px-3" id="cardBodyExpenseAlert" style="font-size: 0.9rem; ">
+                    <div style="max-height: 230px; overflow-y: auto;width:495px;margin-left:-15px;margin-top:-10px" id="scrollContainerExpenseAlert">
+                        <div class="table-responsive" style="font-size:12px">
+                            <table id="dbTable" class="table table-striped table-hover">
+                                <thead style="font-size:10px">
+                                    <tr>
+                                        <th style="background-color:#dee2e6"> Sno</th>
+                                        <th style="background-color:#dee2e6"> Description</th>
+                                        <th style="background-color:#dee2e6"> Remarks</th>
+                                        <th style="background-color:#dee2e6"> Requested Amount</th>
+                                        <th style="background-color:#dee2e6"> Approval Status</th>
+                                        <th style="background-color:#dee2e6"> Approved Amount</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody style="font-size:10px">
+                                    @if (ViewBag.expenseAlert != null)
+                                    {
+                                        @foreach (var item in ViewBag.expenseAlert)
+                                        {
+                                            <tr>
+                                                <td>@item.Sno</td>
+                                                <td>@item.Description</td>
+                                                <td> @item.Remarks</td>
+                                                <td> @item.RequestedAmount</td>
+                                                <td> @item.ApprovalStatus</td>
+                                                <td> @item.ApprovedAmount</td>
+                                                @* <td style="display: flex; gap: 5px; justify-content: center; align-items: center;">
+                                                <button class="btn  btnApprove" data-id="@item.LeaveId">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="green" viewBox="0 0 24 24">
+                                                        <path d="M20.285 6.709l-11.285 11.291-5.285-5.291 1.415-1.418 3.87 3.877 9.87-9.877z" />
+                                                    </svg>
+                                                </button>
+                                                <button class="btn  btnReject" data-id="@item.LeaveId">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="red" viewBox="0 0 24 24">
+                                                        <path d="M18.364 5.636l-1.414-1.414L12 9.172 7.05 4.222 5.636 5.636 10.586 10.586 5.636 15.536l1.414 1.414L12 12.828l4.95 4.95 1.414-1.414-4.95-4.95z" />
+                                                    </svg>
+                                                </button>
+                                            </td> *@
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <p>No record found.</p>
+                                    }
+                                </tbody>
+
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--Employee Expense Alert Dashboard Ends-->
+        }
+
+        @if (role == "Employee1" || role == "Manager1")
+        {
+           
+            <!--Timecard-->
+            <div class="card shadow-sm rounded" style="width: 402px;height:265px;top:0px;background-color:#575357" id="Timecard">
+                <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Timecard</h5>
+                </div>
+
+                <div class="card shadow-sm" style="margin-top:-8px;">
+
+                    <div class="card-body p-0" style="width: 398px;">
+                        <div style="overflow-x: auto;height:213px;width:398px">
+                            <table class="table table-sm table-bordered text-center mb-0" style="height:272px">
+                                <thead style="font-size:10px">
+                                    <tr>
+                                        @foreach (var day in Enum.GetValues(typeof(DayOfWeek)))
+                                        {
+
+                                            <th>@CultureInfo.CurrentCulture.DateTimeFormat.AbbreviatedDayNames[(int)day]</th>
+                                        }
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        int dayCounter = 1;
+                                        bool started = false;
+                                    }
+                                    @for (int week = 0; dayCounter <= daysInMonth;)
+                                    {
+                                        <tr>
+                                            @for (int i = 0; i < 7; i++)
+                                            {
+                                                if (!started && i == firstDayOfWeek)
+                                                    started = true;
+
+                                                if (started && dayCounter <= daysInMonth)
+                                                {
+                                                    var currentDate = new DateTime(year, month, dayCounter);
+                                                    //var entry = Model.FirstOrDefault(t => Convert.ToDateTime(t.LogDate) == currentDate.Date);
+                                                    var entry = Model.Where(d => d.LogDate == currentDate.Date.ToString("dd-MM-yyyy")).ToList();
+
+                                                    string? remark = entry != null && entry.Count > 0 ? entry[0].Remakrs : string.Empty;
+                                                    string cellClass = "calendar-cell";
+                                                    if (remark.Contains("Public Holiday"))
+                                                    {
+                                                        cellClass += " bg-holiday";
+                                                    }
+                                                    else if (remark.Contains("Absent"))
+                                                    {
+                                                        cellClass += " bg-absent";
+                                                    }
+                                                    else if (remark.Contains("Late In"))
+                                                    {
+                                                        cellClass += " bg-late";
+
+                                                    }
+                                                    else if (remark.Contains("On Time"))
+                                                    {
+                                                        cellClass += " bg-present";
+                                                    }
+                                                    else if (remark.Contains("Leave"))
+                                                    {
+                                                        cellClass += " bg-leave";
+                                                    }
+
+                                                    <td class="@cellClass"
+                                                        data-bs-toggle="tooltip"
+                                                        data-bs-html="true"
+                                                        data-bs-placement="top"
+                                                        title="Login: @(entry.Any() ? entry[0].InTime.ToString("HH:mm") : "--")<br/>
+                                                        Logout: @(entry.Any() ? entry[0].OutTime.ToString("HH:mm") : "--")<br/>
+                                                        Remarks: @(entry.Any() ? entry[0].Remakrs : "--")">
+
+                                                        <strong>@dayCounter</strong><br />
+                                                        @if (entry != null)
+                                                        {
+                                                        @*  <span hidden>Login: @(entry[0].InTime.ToString("HH:mm") ?? "--")</span>
+
+                                                        <br />
+                                                        <span hidden>Logout: @(entry[0].OutTime.ToString("HH:mm") ?? "--")</span>
+                                                        <br /> *@
+                                                            <span>@(entry[0].Remakrs)</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-danger">Absent</span>
+                                                        }
+                                                    </td>
+                                                    dayCounter++;
+                                                }
+                                                else
+                                                {
+                                                    <td></td>
+                                                }
+                                            }
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+   
+</div>
+
+<script>
+
+    $("#remarksModal .btn-secondary").on("click", function () {
+        $("#remarksModal").modal("hide");
+    });
+
+</script>
+
+<script>
+
+    $('#btnRefreshDept').click(function () {
+        debugger;
+        var url= '/Home/refreshDepartment'; // Replace with your controller route
+        $.ajax({
+            url: '@Url.Action("refreshDepartment", "Home")',
+            type: 'GET',
+            async: true,
+            success: function (data) {
+                debugger
+                $('#deptCard').empty()
+
+                $.each(data.data, function (index, item) {
+                    $('#deptCard').append('<li class="list-group-item d-flex justify-content-between align-items-center">' +
+                        '<div>' +
+                        '<strong>' + item.sName + '</strong><br />' +
+                        '<small>' + item.sName + '-' + item.sCode + '</small>' +
+                        '</div>' +
+                        '</li>');
+                });
+                debugger;
+            },
+            error: function (error) {
+                alert('Failed to refresh department list.');
+            }
+        });
+    });
+
+</script>
+
+<script>
+    @* setupRefreshButton('btnRefreshDept', 'refreshIconDept'); *@
+</script>
+
+<script>
+    let selectedAction = '';
+    let selectedLeaveId = 0;
+
+    @* $('body').on('click', '.btnApprove, .btnReject', function () { *@
+    $('#dbTableLeave').on('click', '.btnApprove, .btnReject', function () {
+        debugger;
+        selectedLeaveId = $(this).data('id');
+        selectedAction = $(this).hasClass('btnApprove') ? 'Approve' : 'Reject';
+
+        $('#modalLeaveId').val(selectedLeaveId);
+        $('#modalActionType').val(selectedAction);
+        $('#modalRemarks').val('');
+        $('#remarksModal').modal('show');
+    });
+
+    $('#submitRemarks').click(function () {
+        var id = $('#modalLeaveId').val();
+        var action = $('#modalActionType').val();
+        var remarks = $('#modalRemarks').val();
+
+        if (!remarks.trim()) {
+            alert("Remarks are required.");
+            return;
+        }
+
+        $.post(`@Url.Action("HandleLeaveAction", "LeaveApprovalManual")`, {
+            id: id,
+            actionType: action,
+            remarks: remarks
+        }, function (res) {
+            if (res.success) {
+                alert(`Leave ${action}d successfully.`);
+                $('#remarksModal').modal('hide');
+                @* $('#btnDisplay').click(); // Reload table *@
+                // Optionally, you can refresh the leave alert table here
+                location.reload(); // Reload the page to reflect changes
+
+            } else {
+                alert(res.message);
+            }
+        });
+    });
+</script>
+
+
+<script>
+    let selectedActionexp = '';
+    let selectedIdexp = 0;
+
+    @* $('dbTable body').on('click', '.btnApproveExp, .btnRejectExp', function () { *@
+    $('#dbTableExpense').on('click', '.btnApproveExp, .btnRejectExp', function () {
+        debugger;
+        selectedIdexp = $(this).data('id');
+        selectedActionexp = $(this).hasClass('btnApproveExp') ? 'Approve' : 'Reject';
+
+        $('#modalId').val(selectedIdexp);
+        $('#modalActionType').val(selectedActionexp);
+        $('#modalRemarks').val('');
+        $('#modalAmount').val('');
+        $('#expenseRemarksModal').modal('show');
+    });
+
+    $('#submitexpenseRemarks').click(function () {
+        var id = $('#modalId').val();
+        var action = $('#modalActionType').val();
+        var remarks = $('#modalRemarks').val();
+        var amount = $('#modalAmount').val();
+        if (!remarks.trim()) {
+            alert("Remarks are required.");
+            return;
+        }
+         if (!amount.trim()) {
+            alert("Amount are required.");
+            return;
+        }
+        $.post(`@Url.Action("HandleExpenseAction", "Expense")`, {
+            id: id,
+            actionType: action,
+            remarks: remarks,
+            amount:amount
+        }, function (res) {
+            if (res.success) {
+                alert(`Expense ${action}d successfully.`);
+                $('#remarksModal').modal('hide');
+                @* $('#btnDisplay').click(); // Reload table *@
+                // Optionally, you can refresh the leave alert table here
+                location.reload(); // Reload the page to reflect changes
+
+            } else {
+                alert(res.message);
+            }
+        });
+    });
+</script>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const cells = document.querySelectorAll(".calendar-cell");
+
+        // Initialize tooltip on all cells
+        cells.forEach(cell => {
+            const tooltip = new bootstrap.Tooltip(cell, {
+                trigger: 'manual', // We will handle showing manually
+                placement:'auto',
+                html: true
+            });
+
+            cell.addEventListener("click", function (e) {
+                // Hide all other tooltips
+                document.querySelectorAll('.calendar-cell').forEach(el => {
+                    bootstrap.Tooltip.getInstance(el)?.hide();
+                });
+            debugger
+
+            var rem= cell.querySelector("span:not([hidden])").textContent
+            if (rem !== 'Absent' && rem !== 'Public Holiday' && rem !== 'Leave')
+            {
+                // Show clicked one
+                tooltip.show();
+            }
+
+            // Hide again after 3 seconds
+            setTimeout(() => tooltip.hide(), 3000);
+            });
+        });
+    });
+</script>
+
+<script>
+         $('#modalAmount').on('input', function () {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    });
+</script>
+
+
+
+
+<script>
+    const ctx = document.getElementById('attendancePieChart').getContext('2d');
+
+    const total = @ViewBag.empCount ?? 0;
+    const present = @ViewBag.empPresentCount ?? 0;
+    const absent = total - present;
+
+    const presentPercentage = total > 0 ? `${(present / total * 100).toFixed(0)}%` : '0%';
+    const absentPercentage = total > 0 ? `${(absent / total * 100).toFixed(0)}%` : '0%';
+
+    // Plugin registration
+    Chart.register(ChartDataLabels);
+
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Absent', 'Present'],
+                datasets: [{
+                    data: [absent, present],
+                    backgroundColor: ['#bd3f3f', '#589d86'],
+                    borderColor: '#fff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            boxWidth: 10,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Employee Attendance',
+                        font: {
+                            weight: 'bold'
+                        }
+                    },
+                    datalabels: {
+                        color: '#fff',
+                        font: {
+                            weight: 'bold',
+                            size: 14
+                        },
+                        formatter: function(value, context) {
+                            const index = context.dataIndex;
+                            return index === 0 ? absentPercentage : presentPercentage;
+                        }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+    }
+</script>
+
+<script>
+    function showEmployeeList() {
+        // You can replace this with actual logic to show the employee list
+        alert("Total Employee Detail request Alert");
+        // Example: open modal, redirect, expand section, etc.
+    }
+</script>
+
+<script>
+   @*  document.getElementById("attendanceSearch").addEventListener("keyup", function () {
+        var searchText = this.value.toLowerCase();
+        var rows = document.querySelectorAll("#dbTable tbody tr");
+
+        rows.forEach(function (row) {
+            var rowText = row.textContent.toLowerCase();
+            row.style.display = rowText.includes(searchText) ? "" : "none";
+        });
+    }); *@
+</script>
+
+
+<script>
+
+       function exportExcel(title, excelfile) {
+            debugger;
+            var table = document.getElementById(excelfile.substring(1));
+            var tbody = table.querySelector("tbody");
+            var rows = tbody.querySelectorAll("tr");
+
+            if (rows.length > 0 && !(rows.length === 1 && rows[0].innerText.includes("No data found"))) {
+                var wb = XLSX.utils.table_to_book(table, { sheet: title });
+                var ws = wb.Sheets[title];
+
+                // 🔹 Auto-fit column widths
+                var colWidths = [];
+                var data = XLSX.utils.sheet_to_json(ws, { header: 1 });
+                data.forEach(row => {
+                    row.forEach((cell, i) => {
+                        let cellValue = cell ? cell.toString() : "";
+                        colWidths[i] = Math.max(colWidths[i] || 10, cellValue.length + 2);
+                    });
+                });
+                ws['!cols'] = colWidths.map(w => ({ wch: w }));
+
+                // 🔹 Company Name (Row 1)
+                var companyName = '@companyName';
+                XLSX.utils.sheet_add_aoa(ws, [[companyName]], { origin: "A1" });
+
+                // 🔹 Report Title (Row 2)
+                XLSX.utils.sheet_add_aoa(ws, [[title]], { origin: "A2" });
+
+                // Add Date
+                // Get current date
+                var today = new Date();
+                var formattedDate = today.toLocaleDateString("en-GB");
+                XLSX.utils.sheet_add_aoa(ws, [[formattedDate]], { origin: "A3" });
+
+                // 🔹 Push down existing data by 2 rows
+                XLSX.utils.sheet_add_aoa(ws, data, { origin: "A4" });
+
+                // 🔹 Merge Row 1 and Row 2 across all columns
+                var lastCol = colWidths.length - 1;
+                ws['!merges'] = ws['!merges'] || [];
+                ws['!merges'].push(
+                    { s: { r: 0, c: 0 }, e: { r: 0, c: lastCol } }, // Row 1
+                    { s: { r: 1, c: 0 }, e: { r: 1, c: lastCol } },  // Row 2
+                    { s: { r: 2, c: 0 }, e: { r: 2, c: lastCol } }  // Row 3
+                );
+
+                // 🔹 Style rows (requires xlsx-style / pro build)
+                if (!ws['A1'].s) ws['A1'].s = {};
+                ws['A1'].s = { font: { bold: true, sz: 16 }, alignment: { horizontal: "center", vertical: "center"  } };
+                if (!ws['A2'].s) ws['A2'].s = {};
+                ws['A2'].s = { font: { bold: true, sz: 14 }, alignment: { horizontal: "center", vertical: "center"  } };
+                if (!ws['A3'].s) ws['A3'].s = {};
+                ws['A3'].s = { font: { bold: true, sz: 14 }, alignment: { horizontal: "center", vertical: "center"  } };
+
+                ws['A4'].s = { font: { bold: true, sz: 14 } };
+
+                // 🔹 Add company logo in header (works in Page Layout / print view)
+               @*  var companyLogo = '@Html.Raw(companyLogo)'; // should be Base64 "data:image/png;base64,..."
+            
+                ws['!headerFooter'] = {
+                    oddHeader: "&C&[Picture]",   // &C = Center, &[Picture] = placeholder
+                    images: {
+                        "logo": { path: companyLogo, type: "png", position: { type: "header", location: "center" } }
+                    }
+                }; *@
+
+                XLSX.writeFile(wb, excelfile.substring(1) + ".xlsx");
+            } else {
+            alert("No employee data available to export!");
+        }
+    }
+</script>
+
+@* Employee login attendance Weekly Report Chart *@
+
+<script>
+    const attendanceData = @Html.Raw(JsonConvert.SerializeObject(ViewBag.EmployeeLastWeekAttendance));
+
+    // ✅ Safe date parser (handles dd-MM-yyyy HH:mm) 
+    function parseDate(dateStr) {
+        const [d, m, yTime] = dateStr.split('-');
+        const [y, time] = yTime.split(' ');
+        const [hour, minute] = time.split(':');
+        return new Date(`${y}-${m}-${d}T${hour}:${minute}:00`);
+    }
+
+    // Sort data by login datetime
+    attendanceData.sort((a, b) => parseDate(a.login) - parseDate(b.login));
+
+    // Labels (dd-MMM)
+    const labels = attendanceData.map(x => {
+        const date = parseDate(x.login);
+        return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+    });
+
+    // Convert HH:mm → decimal hours
+    const workedHours = attendanceData.map(x => {
+        const [h, m] = x.HourWorked.split(':').map(Number);
+        return h + m / 60;
+    });
+
+    // Color theme (pastel professional palette)
+    const backgroundColors = attendanceData.map(x => {
+        switch (x.Status.toLowerCase()) {
+            case 'ontime': return 'rgba(52, 168, 83, 0.8)'; // soft green
+            case 'late in': return 'rgba(234, 67, 53, 0.8)'; // soft red
+            case 'early out': return 'rgba(251, 188, 5, 0.8)'; // warm yellow
+            default: return 'rgba(128, 128, 128, 0.6)'; // gray
+        }
+    });
+
+    const ctx2 = document.getElementById('attendanceChart').getContext('2d');
+
+    new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Hours Worked',
+                data: workedHours,
+                backgroundColor: backgroundColors,
+                borderColor: backgroundColors.map(c => c.replace('0.8', '1')),
+                borderWidth: 1.5,
+                borderRadius: 8,
+                barPercentage: 0.5,       // 👈 makes bars thinner
+                categoryPercentage: 0.7,  // 👈 adds spacing between groups
+                hoverBackgroundColor: backgroundColors.map(c => c.replace('0.8', '1')),
+                hoverBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: {
+                padding: {
+                    top: 20,
+                    bottom: 10,
+                    left: 10,
+                    right: 10
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: 'Employee Work Hours (Last 7 Days)',
+                    color: '#333',
+                    font: {
+                        size: 18,
+                        weight: '600',
+                        family: "'Inter', 'Segoe UI', sans-serif"
+                    },
+                    padding: { top: 10, bottom: 20 }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleFont: { size: 13, weight: '600', family: "'Inter', sans-serif" },
+                    bodyFont: { size: 12, family: "'Inter', sans-serif" },
+                    padding: 12,
+                    displayColors: false,
+                    cornerRadius: 8,
+                    callbacks: {
+                        title: function (context) {
+                            return 'Date: ' + labels[context[0].dataIndex];
+                        },
+                        label: function (context) {
+                            const data = attendanceData[context.dataIndex];
+                            return [
+                                `Login: ${data.login.split(' ')[1]}`,
+                                `Logout: ${data.logout.split(' ')[1]}`,
+                                `Worked: ${data.HourWorked}`,
+                                `Status: ${data.Status}`
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(200, 200, 200, 0.2)',
+                        borderDash: [5, 5]
+                    },
+                    ticks: {
+                        color: '#444',
+                        font: { size: 12, family: "'Inter', sans-serif" },
+                        stepSize: 1,
+                        callback: v => v + 'h'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Hours Worked',
+                        color: '#555',
+                        font: { size: 13, weight: '500' }
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: {
+                        color: '#444',
+                        font: { size: 12, family: "'Inter', sans-serif" }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Date',
+                        color: '#555',
+                        font: { size: 13, weight: '500' }
+                    }
+                }
+            },
+            animation: {
+                duration: 800,
+                easing: 'easeOutQuart'
+            }
+        }
+    });
+</script>
+
+
+<script>
+    var data = @Html.Raw(JsonConvert.SerializeObject(ViewBag.EmployeeLastWeekDetail));
+    var ctx1 = document.getElementById("employeeAttendanceChart").getContext("2d");
+    var currentChart = null;
+    var showBar = true; // first show bar chart
+
+    function renderBarChart() {
+        // Gradient colors
+        var gradientTotal = ctx1.createLinearGradient(0, 0, 0, 400);
+        gradientTotal.addColorStop(0, "#818cf8");
+        gradientTotal.addColorStop(1, "#6366f1");
+
+        var gradientPresent = ctx1.createLinearGradient(0, 0, 0, 400);
+        gradientPresent.addColorStop(0, "#34d399");
+        gradientPresent.addColorStop(1, "#10b981");
+
+        var gradientAbsent = ctx1.createLinearGradient(0, 0, 0, 400);
+        gradientAbsent.addColorStop(0, "#f87171");
+        gradientAbsent.addColorStop(1, "#ef4444");
+
+        return new Chart(ctx1, {
+            type: "bar",
+            data: {
+                labels: data.map(x => x.dDate),
+                datasets: [
+                    {
+                        label: "Total Employees",
+                        data: data.map(x => x.TotalEmployees),
+                        backgroundColor: gradientTotal,
+                        borderRadius: 8,
+                        barPercentage: 0.8,
+                        categoryPercentage: 0.7,
+                    },
+                    {
+                        label: "Present",
+                        data: data.map(x => x.PresentEmployees),
+                        backgroundColor: gradientPresent,
+                        borderRadius: 8,
+                        barPercentage: 0.8,
+                        categoryPercentage: 0.7,
+                    },
+                    {
+                        label: "Absent",
+                        data: data.map(x => x.AbsentEmployees),
+                        backgroundColor: gradientAbsent,
+                        borderRadius: 8,
+                        barPercentage: 0.8,
+                        categoryPercentage: 0.7,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: "bottom",
+                        labels: { usePointStyle: true, pointStyle: "circle", padding: 20 }
+                    },
+                    title: {
+                        display: true,
+                        text: "Employee Attendance (Last Week)",
+                        font: { size: 18, weight: "bold" },
+                        padding: { top: 10, bottom: 30 }
+                    },
+                    tooltip: {
+                        backgroundColor: "#1f2937",
+                        titleColor: "#fff",
+                        bodyColor: "#e5e7eb",
+                        cornerRadius: 8,
+                        padding: 12
+                    },
+                    datalabels: {
+                        anchor: "end",
+                        align: "top",
+                        color: "#374151",
+                        font: { weight: "bold", size: 12 },
+                        formatter: value => value
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: "rgba(0,0,0,0.05)" },
+                        ticks: { stepSize: 1 }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+    }
+
+    function renderLineChart() {
+        var gradientLine = ctx1.createLinearGradient(0, 0, 0, 400);
+        gradientLine.addColorStop(0, "#34d399");
+        gradientLine.addColorStop(1, "#10b981");
+
+        var gradientFill = ctx1.createLinearGradient(0, 0, 0, 400);
+        gradientFill.addColorStop(0, "rgba(16, 185, 129, 0.3)");
+        gradientFill.addColorStop(1, "rgba(16, 185, 129, 0)");
+
+        return new Chart(ctx1, {
+            type: "line",
+            data: {
+                labels: data.map(x => x.dDate),
+                datasets: [{
+                    label: "Present Employees (Last 7 Days)",
+                    data: data.map(x => x.PresentEmployees),
+                    borderColor: gradientLine,
+                    backgroundColor: gradientFill,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: "#10b981",
+                    pointBorderColor: "#fff",
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: "bottom",
+                        labels: { usePointStyle: true, pointStyle: "circle", padding: 20 }
+                    },
+                    title: {
+                        display: true,
+                        text: "Employee Attendance - Present (Last 7 Days)",
+                        font: { size: 18, weight: "bold" },
+                        padding: { top: 10, bottom: 30 }
+                    },
+                    tooltip: {
+                        backgroundColor: "#1f2937",
+                        titleColor: "#fff",
+                        bodyColor: "#e5e7eb",
+                        cornerRadius: 8,
+                        padding: 12,
+                        callbacks: {
+                            label: function (context) {
+                                const total = data[context.dataIndex].TotalEmployees;
+                                return `Present: ${context.parsed.y} / ${total}`;
+                            }
+                        }
+                    },
+                    datalabels: {
+                        anchor: "end",
+                        align: "top",
+                        color: "#374151",
+                        font: { weight: "bold", size: 12 },
+                        formatter: value => value
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: "rgba(0,0,0,0.05)" },
+                        ticks: { stepSize: 1 },
+                        suggestedMax: Math.max(...data.map(x => x.TotalEmployees)) + 1
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+    }
+
+    // Function to toggle between charts
+    function toggleChart() {
+        if (currentChart) currentChart.destroy(); // remove old chart
+        currentChart = showBar ? renderBarChart() : renderLineChart();
+        showBar = !showBar;
+    }
+
+    // Initial load
+    toggleChart();
+
+    // Change chart every 10 seconds
+    setInterval(toggleChart, 10000);
+</script>
+
+
+
+
+<script>
+    const canvas = document.getElementById("analogClock");
+    const ctxa = canvas.getContext("2d");
+    const radius = canvas.height / 2;
+    ctxa.translate(radius, radius); // center
+    const clockRadius = radius * 0.90;
+
+    function drawClock() {
+        drawFace(ctxa, clockRadius);
+        drawNumbers(ctxa, clockRadius);
+        drawTime(ctxa, clockRadius);
+    }
+
+    function drawFace(ctxa, radius) {
+        ctxa.beginPath();
+        ctxa.arc(0, 0, radius, 0, 2 * Math.PI);
+        ctxa.fillStyle = 'white';
+        ctxa.fill();
+
+        // Outer border
+        ctxa.strokeStyle = '#333';
+        ctxa.lineWidth = radius * 0.05;
+        ctxa.stroke();
+
+        // Center dot
+        ctxa.beginPath();
+        ctxa.arc(0, 0, radius * 0.05, 0, 2 * Math.PI);
+        ctxa.fillStyle = '#333';
+        ctxa.fill();
+    }
+
+    function drawNumbers(ctxa, radius) {
+        ctxa.font = radius * 0.15 + "px Arial";
+        ctxa.textBaseline = "middle";
+        ctxa.textAlign = "center";
+        for (let num = 1; num <= 12; num++) {
+            const ang = num * Math.PI / 6;
+            ctxa.rotate(ang);
+            ctxa.translate(0, -radius * 0.85);
+            ctxa.rotate(-ang);
+            ctxa.fillText(num.toString(), 0, 0);
+            ctxa.rotate(ang);
+            ctxa.translate(0, radius * 0.85);
+            ctxa.rotate(-ang);
+        }
+    }
+
+    function drawTime(ctxa, radius) {
+        const now = new Date();
+        const hour = now.getHours() % 12;
+        const minute = now.getMinutes();
+        const second = now.getSeconds();
+
+        // Hour hand
+        drawHand(ctxa, (hour + minute / 60) * 30 * Math.PI / 180, radius * 0.5, radius * 0.07);
+        // Minute hand
+        drawHand(ctxa, (minute + second / 60) * 6 * Math.PI / 180, radius * 0.8, radius * 0.05);
+        // Second hand
+        drawHand(ctxa, second * 6 * Math.PI / 180, radius * 0.9, radius * 0.02, 'red');
+    }
+
+    function drawHand(ctxa, pos, length, width, color = '#333') {
+        ctxa.beginPath();
+        ctxa.lineWidth = width;
+        ctxa.lineCap = "round";
+        ctxa.strokeStyle = color;
+        ctxa.moveTo(0,0);
+        ctxa.rotate(pos);
+        ctxa.lineTo(0, -length);
+        ctxa.stroke();
+        ctxa.rotate(-pos);
+    }
+
+    setInterval(drawClock, 1000);
+    drawClock(); // initial draw
+</script>
+
+<script>
+    function exportPdf(title, pdffile) {
+        debugger
+        var companyName = '@companyName';
+        var companyLogo = '@Html.Raw(companyLogo)'; // Base64 string like "data:image/png;base64,...."
+
+        var table = document.getElementById(pdffile.substring(1));
+        var tbody = table.querySelector("tbody");
+        var rows = tbody.querySelectorAll("tr");
+
+        if (rows.length <= 0) {
+            alert("No data available to export!");
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        var doc = new jsPDF("l", "pt", "a4"); // landscape
+
+        // Centered Logo
+        const pageWidth = doc.internal.pageSize.getWidth();
+        @* const imageWidth = 20;
+        const imageHeight = 20;
+        const x = (pageWidth - imageWidth) / 2;
+        const y = 20;
+
+        if (companyLogo) {
+            doc.addImage(companyLogo, "PNG", x, y, imageWidth, imageHeight);
+        } *@
+
+        // Add company name
+        doc.setFontSize(12);
+        doc.text(companyName, pageWidth / 2, 50, { align: "center" });
+
+        // Add PDF title
+        doc.setFontSize(12);
+        doc.text(title, pageWidth / 2, 65, { align: "center" });
+
+        // Add Date
+        // Get current date
+        var today = new Date();
+        var formattedDate = today.toLocaleDateString("en-GB");
+        doc.setFontSize(10);
+        doc.text("Date: " + formattedDate, pageWidth / 2, 80, { align: "center" });
+
+        // Add table
+        doc.autoTable({
+            html: pdffile,
+            startY: 100,
+            styles: { fontSize: 8 },
+            headStyles: { fontStyle: 'bold', fillColor: false, textColor: [0, 0, 0] }
+        });
+
+        doc.save(title + ".pdf");
+}
+ 
+</script>
+
+<script>
+    function searchTable(tableId, searchValue) {
+        var value = searchValue.toLowerCase();
+        var rows = document.querySelectorAll("#" + tableId + " tbody tr");
+
+        rows.forEach(function (row) {
+            var text = row.innerText.toLowerCase();
+            row.style.display = text.includes(value) ? "" : "none";
+        });
+    }
+</script>
+
+<script>
+    debugger;
+    // Get login time string from the ViewBag element
+    const loginTimeStr = document.getElementById("loginTime").textContent.trim();
+      // Combine today's date with the login time (HH:mm:ss)
+    const today = new Date();
+    const [hours, minutes, seconds] = loginTimeStr.split(":").map(Number);
+    const loginTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, minutes, seconds);
+
+      function formatTime(h, m, s) {
+      return (
+        String(h).padStart(2, '0') + ":" +
+        String(m).padStart(2, '0') + ":" +
+        String(s).padStart(2, '0')
+      );
+    }
+
+    function updateWorkClock() {
+      const now = new Date();
+      const diff = now - loginTime;
+      if (diff < 0) return; // Prevent negative time in case of clock mismatch
+
+      const totalSeconds = Math.floor(diff / 1000);
+      const hrs = Math.floor(totalSeconds / 3600);
+      const mins = Math.floor((totalSeconds % 3600) / 60);
+      const secs = totalSeconds % 60;
+
+      document.getElementById("workClock").textContent = formatTime(hrs, mins, secs);
+    }
+
+
+    setInterval(updateWorkClock, 1000);
+    updateWorkClock();
+</script>
+
+<script>
+    const statusDiv = document.getElementById("punchStatus");
+
+    async function sendPunch(type, lat, lon) {
+        try {
+            const response = await fetch(`/Attendance/Punch?type=${type}&lat=${lat}&lon=${lon}`, {
+                method: "POST"
+            });
+            const result = await response.text();
+            statusDiv.innerHTML = result;
+        } catch (err) {
+            statusDiv.innerHTML = "⚠️ Server error while punching.";
+        }
+    }
+
+    function getLocationAndPunch(type) {
+        if (!navigator.geolocation) {
+            statusDiv.innerHTML = "Geolocation not supported by your browser.";
+            return;
+        }
+
+        statusDiv.innerHTML = "📍 Getting your location...";
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                sendPunch(type, lat, lon);
+            },
+            (error) => {
+                statusDiv.innerHTML = "❌ Please allow location access to punch attendance.";
+            }
+        );
+    }
+
+    document.getElementById("btnLoginPunch").addEventListener("click", () => getLocationAndPunch("login"));
+    document.getElementById("btnLogoutPunch").addEventListener("click", () => getLocationAndPunch("logout"));
+</script>

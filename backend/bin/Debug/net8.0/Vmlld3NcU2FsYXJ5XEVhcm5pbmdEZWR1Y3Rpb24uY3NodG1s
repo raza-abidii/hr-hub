@@ -1,0 +1,182 @@
+﻿@{
+    ViewBag.Title = "Employee Salary Earning Deduction Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/Style.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h4 class="text-center d-flex justify-content-center align-items-center gap-2">
+            Employee Salary Breakdown
+            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="darkorange" class="bi bi-scale" viewBox="0 0 16 16">
+                <path d="M7 13.5V3H6a.5.5 0 0 1 0-1h4a.5.5 0 0 1 0 1h-1v10.5h2.5a.5.5 0 0 1 0 1H4.5a.5.5 0 0 1 0-1H7zm-4.765-7h2.53a.25.25 0 0 1 .24.316l-.83 2.907a1.75 1.75 0 0 1-3.35 0l-.83-2.907A.25.25 0 0 1 2.235 6.5zM2.5 10a.75.75 0 0 0 .717-.52l.696-2.44H1.087l.696 2.44A.75.75 0 0 0 2.5 10zM13.765 6.5h-2.53a.25.25 0 0 0-.24.316l.83 2.907a1.75 1.75 0 0 0 3.35 0l.83-2.907a.25.25 0 0 0-.24-.316zM13.5 10a.75.75 0 0 1-.717-.52l-.696-2.44h2.826l-.696 2.44a.75.75 0 0 1-.717.52z" />
+            </svg>
+    
+        </h4>
+
+        <div class="row">
+            <!-- Earnings Table -->
+            <div class="col-md-6">
+                <h4>Earnings</h4>
+                <table class="table table-bordered table-striped" id="tblearning">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Particular</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (ViewBag.Earnings != null && ViewBag.Earnings.Count > 0)
+                        {
+                            foreach (var earning in ViewBag.Earnings)
+                            {
+                                <tr>
+                                    <td><input type="text" class="form-control" value="@earning.TypeName" /></td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td><input type="text" class="form-control" /></td>
+                            </tr>
+                        }
+
+
+
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Deductions Table -->
+            <div class="col-md-6">
+                <h4>Deductions</h4>
+                <table class="table table-bordered table-striped" id="tbldeduction">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Particular</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (ViewBag.Deductions != null && ViewBag.Deductions.Count > 0)
+                        {
+                            foreach (var deduction in ViewBag.Deductions)
+                            {
+                                <tr>
+                                    <td><input type="text" class="form-control" value="@deduction.TypeName" /></td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td><input type="text" class="form-control" /></td>
+                            </tr>
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <button type="button" id="tbnSave" class="btn btn-success">Save Salary Details</button>
+        </div>
+    </div>
+</body>
+</html>
+<script>
+    //add row on enter in last row of table
+    $(document).ready(function () {
+        // $('#tblearning tbody').on('keydown', 'input', function (e) {
+        //     if (e.key === 'Enter') {
+        //         e.preventDefault();
+        //         var $table = $(this).closest('table');
+        //         var $lastRow = $table.find('tbody tr:last');
+        //         if ($(this).closest('tr').is($lastRow)) {
+        //             var $newRow = $('<tr><td><input type="text" class="form-control" /></td></tr>');
+        //             $table.find('tbody').append($newRow);
+        //             $newRow.find('input').focus(); // move focus to new input
+        //         }
+        //     }
+        // });
+        // $('#tbldeduction tbody').on('keydown', 'input', function (e) {
+        //     if (e.key === 'Enter') {
+        //         e.preventDefault();
+        //         var $table = $(this).closest('table');
+        //         var $lastRow = $table.find('tbody tr:last');
+        //         if ($(this).closest('tr').is($lastRow)) {
+        //             var $newRow = $('<tr><td><input type="text" class="form-control" /></td></tr>');
+        //             $table.find('tbody').append($newRow);
+        //             $newRow.find('input').focus(); // Move cursor to new input
+        //         }
+        //     }
+        // });
+
+        debugger;
+            $('table tbody').on('keydown', 'input', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+
+            var $table = $(this).closest('table');
+            var tableId = $table.attr('id'); // Get table ID dynamically
+            var $lastRow = $table.find('tbody tr:last');
+
+            if ($(this).closest('tr').is($lastRow)) {
+                var $newRow = $('<tr><td><input type="text" class="form-control" /></td></tr>');
+                $table.find('tbody').append($newRow);
+                $newRow.find('input').focus(); // Focus new input
+            }
+
+            // Optional: use tableId if you want to do something table-specific
+            console.log("Entered in table: " + tableId);
+        }
+    });
+
+    });
+
+    //on button save send earning table data and deduction table data to controller
+
+    $('#tbnSave').click(function () {
+        debugger;
+        var earnings = [];
+        $('#tblearning tbody tr').each(function () {
+            var earning = $(this).find('input').val();
+            if (earning) {
+                earnings.push(earning);
+            }
+        });
+        var deductions = [];
+        $('#tbldeduction tbody tr').each(function () {
+            var deduction = $(this).find('input').val();
+            if (deduction) {
+                deductions.push(deduction);
+            }
+        });
+        var requestData={ earnings: earnings, deductions: deductions }
+        // Send data to controller via AJAX
+        $.ajax({
+            url: '@Url.Action("SaveSalaryDetails", "Salary")',
+            type: 'POST',
+            data: requestData,
+
+            success: function (response) {
+                debugger;
+                alert('Salary details saved successfully!');
+            },
+            error: function (xhr, status, error) {
+                alert('Error saving salary details: ' + error);
+            }
+        });
+    });
+
+</script>

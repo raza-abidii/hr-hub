@@ -1,0 +1,6 @@
+﻿
+@{
+    ViewBag.Title = "Shift Allocation";
+}
+
+<h2>Shift Allocation</h2>

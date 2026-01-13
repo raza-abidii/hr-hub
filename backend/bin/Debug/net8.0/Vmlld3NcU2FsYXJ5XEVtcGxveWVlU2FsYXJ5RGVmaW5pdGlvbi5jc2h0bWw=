@@ -1,0 +1,262 @@
+﻿@{
+    ViewBag.Title = "Employee Salary Definition";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/Style.css">
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center d-flex justify-content-center align-items-center gap-2">
+            Employee Salary Definition
+        </h2>
+
+        @* <form asp-action="SaveSalary" method="post"> *@
+        <div class="form-group">
+            <label for="EmployeeId">Employee Name</label>
+            <select id="EmployeeId" name="EmployeeId" class="form-control" onchange="LoadExistingData(this.value)">
+                <option value="">-- Select Employee --</option>
+                @foreach (var emp in ViewBag.Employees)
+                {
+                    <option value="@emp.iMasterid">@emp.sEmployeeName</option>
+                }
+            </select>
+        </div>
+        <br />
+        <div class="row">
+            <!-- Earnings Table -->
+            <div class="col-md-6">
+                <h4>Earnings</h4>
+                <table class="table table-bordered table-striped" id="tblearning">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Particular</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (ViewBag.Earnings != null && ViewBag.Earnings.Count > 0)
+                        {
+                            foreach (var earning in ViewBag.Earnings)
+                            {
+                                <tr>
+                                    <td><input type="text" class="form-control" value="@earning.TypeName" readonly /></td>
+                                    <td><input type="number" class="form-control salary-input" oninput="calculateNetSalary()" /></td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td><input type="text" class="form-control" readonly /></td>
+                                <td><input type="number" class="form-control salary-input" oninput="calculateNetSalary()" /></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Deductions Table -->
+            <div class="col-md-6">
+                <h4>Deductions</h4>
+                <table class="table table-bordered table-striped" id="tbldeduction">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Particular</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (ViewBag.Deductions != null && ViewBag.Deductions.Count > 0)
+                        {
+                            foreach (var deduction in ViewBag.Deductions)
+                            {
+                                <tr>
+                                    <td><input type="text" class="form-control" value="@deduction.TypeName" readonly /></td>
+                                    <td><input type="number" class="form-control salary-input" oninput="calculateNetSalary()" /></td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td><input type="text" class="form-control" readonly /></td>
+                                <td><input type="number" class="form-control salary-input" oninput="calculateNetSalary()" /></td>
+                            </tr>
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+        <div class="row mb-3">
+
+            <div class="col-md-4">
+                <label for="NetSalary" class="form-label">Net Salary</label>
+                <input id="NetSalary" class="form-control" readonly />
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-12 text-end">
+                <button type="button" id="btnSave" class="btn btn-primary">Save</button>
+                <a href="@Url.Action("Index", "Employee")" class="btn btn-secondary">Cancel</a>
+            </div>
+        </div>
+        @* </form> *@
+    </div>
+</body>
+</html>
+
+<script src="/js/GenericFunction.js"></script>
+<script>
+    $(document).ready(function () {
+        debugger;
+        $('#EmployeeId').select2({
+            placeholder: "Select employee",
+            allowClear: true
+        });
+        focusonselectcontrol("#EmployeeId");
+        $("#EmployeeId").focus();
+    });
+
+    $('#btnSave').on('click', function (e) {
+        debugger;
+        e.preventDefault(); // Prevent default form submission
+        // Collect data from the form
+        let employeeId = $('#EmployeeId').val();
+        let earnDed=[];
+        // Collect earnings
+        $('#tblearning tbody tr').each(function () {
+            let typeName = $(this).find('input[type="text"]').val();
+            let amount = parseFloat($(this).find('input[type="number"]').val()) || 0;
+            if (typeName && amount) {
+                earnDed.push({ TypeName: typeName, Amount: amount,iType:0 });
+            }
+        });
+        // Collect deductions
+        $('#tbldeduction tbody tr').each(function () {
+            let typeName = $(this).find('input[type="text"]').val();
+            let amount = parseFloat($(this).find('input[type="number"]').val()) || 0;
+            if (typeName && amount) {
+                earnDed.push({ TypeName: typeName, Amount: amount,iType:1 });
+            }
+        });
+        // Prepare data to send
+        let dataToSend =JSON.stringify ({
+            EmployeeId: employeeId,
+            EarnDeduct: earnDed,
+        });
+        //var requestData=JSON.stringify(dataToSend);
+        // Send data to the server
+        $.ajax({
+            url: '@Url.Action("SaveEmployeeSalary", "Salary")',
+            datatype: 'json',
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            data: dataToSend,
+            success: function (response) {
+                alert('Salary details saved successfully!');
+                // window.location.href = '@Url.Action("Index", "Employee")'; // Redirect after save
+            },
+            error: function (xhr, status, error) {
+                alert('Error saving salary details: ' + error);
+            }
+        });
+    });
+
+</script>
+
+<script>
+    function LoadExistingData(employeeid) {
+        if (!employeeid) return;
+        $.ajax({
+            url: '@Url.Action("getSalaryDetail", "Salary")',
+            type: 'GET',
+            data: { iEmployee: employeeid },
+            success: function (data) {
+                debugger;
+                if(data.success=='true')
+                {
+                    setExistingData(data.salaryDetail);
+                }
+            },
+            error: function () {
+                alert('Error loading role rights');
+            }
+        });
+    }
+</script>
+
+<script>
+    function setExistingData(empSalaryDetail){
+        //loop in earning table
+        debugger;
+      
+
+
+        $('#tblearning tbody tr').each(function () {
+             $(this).find('input[type="number"]').val('');// Clear existing values
+        });
+        $('#tbldeduction tbody tr').each(function () {
+             $(this).find('input[type="number"]').val('');// Clear existing values
+        });
+         
+        $('#tblearning tbody tr').each(function () {
+            let typeName = $(this).find('input[type="text"]').val();
+            if(typeName ){
+                let earning = empSalaryDetail.find(e => e.earningDeductionTypeName === typeName);
+                if(earning){
+                    $(this).find('input[type="number"]').val(earning.amount);
+                }
+            }
+        });
+
+        $('#tbldeduction tbody tr').each(function () {
+            let typeName = $(this).find('input[type="text"]').val();
+            if(typeName ){
+                let deduction = empSalaryDetail.find(e => e.earningDeductionTypeName === typeName);
+                if(deduction){
+                    $(this).find('input[type="number"]').val(deduction.amount);
+                }
+            }
+        });
+        calculateNetSalary();
+    }
+</script>
+
+<script>
+    function calculateNetSalary() {
+        let totalEarning = 0;
+        let totalDeduction = 0;
+
+        // Sum all earnings
+        $('#tblearning tbody tr').each(function () {
+            let amount = parseFloat($(this).find('input[type="number"]').val()) || 0;
+            totalEarning += amount;
+        });
+
+        // Sum all deductions
+        $('#tbldeduction tbody tr').each(function () {
+            let amount = parseFloat($(this).find('input[type="number"]').val()) || 0;
+            totalDeduction += amount;
+        });
+
+        // Calculate net salary
+        let netSalary = totalEarning - totalDeduction;
+        $('#NetSalary').val(netSalary.toFixed(2));
+    }
+
+    // Optionally trigger once on load
+    $(document).ready(function () {
+        calculateNetSalary();
+    });
+</script>

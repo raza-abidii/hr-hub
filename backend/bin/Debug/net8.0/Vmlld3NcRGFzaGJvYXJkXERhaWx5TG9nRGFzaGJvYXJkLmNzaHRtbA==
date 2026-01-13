@@ -1,0 +1,316 @@
+﻿@model EMSSolution.Models.DailyLogDashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+@{
+    var recordStart = Math.Min((Model.CurrentPage - 1) * Model.PageSize + 1, Model.TotalRecords);
+    var recordEnd = Math.Min(Model.CurrentPage * Model.PageSize, Model.TotalRecords);
+    int rowNum = recordStart;
+    string currentSortColumn = Model.SortColumn;
+    string currentSortOrder = Model.SortOrder;
+    Func<string, string> getSortOrder = column =>
+        column == currentSortColumn && currentSortOrder == "asc" ? "desc" : "asc";
+}
+
+
+<style>
+    .card-icon {
+        font-size: 3rem;
+        opacity: 0.3;
+    }
+
+    .text-primary .card-icon {
+        color: var(--bs-primary);
+    }
+
+    .text-success .card-icon {
+        color: var(--bs-success);
+    }
+
+    .text-info .card-icon {
+        color: var(--bs-info);
+    }
+
+    .text-warning .card-icon {
+        color: var(--bs-warning);
+    }
+</style>
+
+<style>
+    /* Style to mimic the screenshot */
+    .table-header-blue {
+        background-color: #e0f2ff; /* Light blue header */
+        color: #005a9e;
+        font-weight: bold;
+    }
+
+    .log-image-preview {
+        width: 60px;
+        height: 40px;
+        border: 1px solid #ccc;
+        object-fit: cover;
+    }
+
+    .pagination-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: -1.5rem 0.75rem;
+        border: 1px solid #dee2e6;
+        border-top: 0;
+        background-color: #f2f2f2;
+    }
+
+        .pagination-controls .form-select {
+            width: auto;
+            display: inline-block;
+            height: 28px;
+            font-size: 12px;
+        }
+
+        .pagination-controls .btn {
+            padding: 0.2rem 0.5rem;
+            font-size: 12px;
+        }
+
+        .pagination-controls .page-info {
+            margin: 0 0.5rem;
+            font-size: 12px;
+        }
+
+        .pagination-controls .record-count {
+            font-weight: normal;
+            font-size: 12px;
+        }
+</style>
+
+<div class="container">
+    <br />
+
+    @* <h3 class="mt-4 text-center">LIVE DAILY LOGS</h3> *@
+    <div class="card shadow-lg border-0 rounded-4 mb-4"
+         style="background: linear-gradient(90deg, #49a58a, #c0b2ff); color: white; height: 60px; margin-top: 16px;">
+        <div class="card-body d-flex justify-content-center align-items-center p-0" style="height: 100%;">
+            <h5 class="mb-0 fw-bold text-uppercase">
+                <i class="fas fa-bolt me-2"></i> LIVE DAILY LOGS
+            </h5>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2" style="background-color:#03A9F4;color:white;margin-top:-16px">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1" style="color:white !important">Total Employees</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalEmployees</div>
+                        </div>
+                        <div class="col-auto" style="font-size:35px">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2" style="background-color:#FF9800;color:white; margin-top:-16px">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1" style="color:white !important">Total Devices</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalDevices</div>
+                        </div>
+                        <div class="col-auto" style="font-size:35px">
+                            <i class="fas fa-server"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2" style="background-color:#CDDC39;color:white;margin-top:-16px">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1" style="color:white !important">Logs (This Month)</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalLogsThisMonth</div>
+                        </div>
+                        <div class="col-auto" style="font-size:35px">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2" style="background-color:#FF4081;color:white;margin-top:-16px">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1" style="color:white !important">Logs (Today)</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalLogsToday</div>
+                        </div>
+                        <div class="col-auto" style="font-size:35px">
+                            <i class="fas fa-clipboard-list "></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="Container">
+    <div class="table-responsive" style="margin-top:-32px">
+        <table class="table table-bordered table-striped mb-0">
+            <thead class="table-header-blue">
+                <tr style="font-size:12px">
+                    
+                    <th style="background-color:#616062;color:white">
+                        <a href="@Url.Action("DailyLogDashboard", new { page = Model.CurrentPage, pageSize = Model.PageSize, sortColumn = "DeviceId", sortOrder = getSortOrder("DeviceId") })" style="color:white; text-decoration:none">
+                            Device Id
+                            @(currentSortColumn == "DeviceId" ? (currentSortOrder == "asc" ? " ▲" : " ▼") : "")
+                        </a>
+                    </th>
+                    <th style="background-color:#616062;color:white">
+                        <a href="@Url.Action("DailyLogDashboard", new { page = Model.CurrentPage, pageSize = Model.PageSize, sortColumn = "DeviceName", sortOrder = getSortOrder("DeviceName") })" style="color:white; text-decoration:none">
+                            Device Name
+                            @(currentSortColumn == "DeviceName" ? (currentSortOrder == "asc" ? " ▲" : " ▼") : "")
+                        </a>
+                    </th>
+                    <th style="background-color:#616062;color:white">
+                        <a href="@Url.Action("DailyLogDashboard", new { page = Model.CurrentPage, pageSize = Model.PageSize, sortColumn = "SerialNo", sortOrder = getSortOrder("SerialNo") })" style="color:white; text-decoration:none">
+                            Serial No
+                            @(currentSortColumn == "SerialNo" ? (currentSortOrder == "asc" ? " ▲" : " ▼") : "")
+                        </a>
+                    </th>
+                    <th style="background-color:#616062;color:white">
+                        <a href="@Url.Action("DailyLogDashboard", new { page = Model.CurrentPage, pageSize = Model.PageSize, sortColumn = "EmpId", sortOrder = getSortOrder("EmpId") })" style="color:white; text-decoration:none">
+                            EmpId
+                            @(currentSortColumn == "EmpId" ? (currentSortOrder == "asc" ? " ▲" : " ▼") : "")
+                        </a>
+                    </th>
+                    <th style="background-color:#616062;color:white">
+                        <a href="@Url.Action("DailyLogDashboard", new { page = Model.CurrentPage, pageSize = Model.PageSize, sortColumn = "EmpName", sortOrder = getSortOrder("EmpName") })" style="color:white; text-decoration:none">
+                            EmpName
+                            @(currentSortColumn == "EmpName" ? (currentSortOrder == "asc" ? " ▲" : " ▼") : "")
+                        </a>
+                    </th>
+                    <th style="background-color:#616062;color:white">
+                        <a href="@Url.Action("DailyLogDashboard", new { page = Model.CurrentPage, pageSize = Model.PageSize, sortColumn = "LogDate", sortOrder = getSortOrder("LogDate") })" style="color:white; text-decoration:none">
+                            Log Date
+                            @(currentSortColumn == "LogDate" ? (currentSortOrder == "asc" ? " ▲" : " ▼") : "")
+                        </a>
+                    </th>
+                    <th style="background-color:#616062;color:white">
+                        <a href="@Url.Action("DailyLogDashboard", new { page = Model.CurrentPage, pageSize = Model.PageSize, sortColumn = "VerifyMethod", sortOrder = getSortOrder("VerifyMethod") })" style="color:white; text-decoration:none">
+                            Verify Method
+                            @(currentSortColumn == "VerifyMethod" ? (currentSortOrder == "asc" ? " ▲" : " ▼") : "")
+                        </a>
+                    </th>
+
+
+                </tr>
+            </thead>
+            <tbody style="font-size:12px">
+                @if (Model.LogEntries != null && Model.LogEntries.Any())
+                {
+                    @foreach (var log in Model.LogEntries)
+                    {
+                        <tr>
+                            <td>@log.DeviceId</td>
+                            <td>@log.DeviceName</td>
+                            <td>@log.SerialNo</td>
+                            <td>@log.EmpId</td>
+                            <td>@log.EmpName</td>
+                            <td>@log.LogDate.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            <td>@log.VerifyMethod</td>
+
+                        </tr>
+
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="13" class="text-center p-4">No Data Found</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="pagination-controls">
+            <div>
+                <button class="btn btn-light border" onclick="location.reload();" title="Refresh"><i class="fas fa-sync-alt"></i></button>
+                @* <button class="btn btn-light border" title="Search"><i class="fas fa-search"></i></button> *@
+            </div>
+            <div class="d-flex align-items-center">
+                <a href="@Url.Action("DailyLogDashboard", new { page = 1, pageSize = Model.PageSize })" class="btn btn-light border @(Model.CurrentPage == 1 ? "disabled" : "")" title="First Page">&laquo;</a>
+                <a href="@Url.Action("DailyLogDashboard", new { page = Model.CurrentPage - 1, pageSize = Model.PageSize })" class="btn btn-light border @(Model.CurrentPage == 1 ? "disabled" : "")" title="Previous Page">&lsaquo;</a>
+
+                <span class="page-info">
+                    Page
+                    <input type="number" value="@Model.CurrentPage" class="form-control d-inline-block" style="width: 70px;height:28px;font-size:12px"
+                           onchange="goToPage(this.value)">
+                    of @Model.TotalPages
+                </span>
+
+                <a href="@Url.Action("DailyLogDashboard", new { page = Model.CurrentPage + 1, pageSize = Model.PageSize })" class="btn btn-light border @(Model.CurrentPage == Model.TotalPages || Model.TotalRecords == 0 ? "disabled" : "")" title="Next Page">&rsaquo;</a>
+                <a href="@Url.Action("DailyLogDashboard", new { page = Model.TotalPages, pageSize = Model.PageSize })" class="btn btn-light border @(Model.CurrentPage == Model.TotalPages || Model.TotalRecords == 0 ? "disabled" : "")" title="Last Page">&raquo;</a>
+
+                <select id="pageSizeSelector" class="form-select ms-3">
+                    <option value="10" selected="@(Model.PageSize == 10)">10</option>
+                    <option value="25" selected="@(Model.PageSize == 25)">25</option>
+                    <option value="50" selected="@(Model.PageSize == 50)">50</option>
+                    <option value="100" selected="@(Model.PageSize == 100)">100</option>
+                    <option value="200" selected="@(Model.PageSize == 200)">200</option>
+                </select>
+            </div>
+            <div class="record-count">
+                View @recordStart - @recordEnd of @Model.TotalRecords
+            </div>
+        </div>
+
+    </div>
+
+
+</div>
+
+
+
+
+@section Scripts {
+    <script>
+
+         // Auto-refresh every 5 minutes (300,000 ms)
+        // setInterval(function () {
+        //     window.location.reload();
+        // }, 60000);
+
+        // JS for handling page size change
+        document.getElementById('pageSizeSelector').addEventListener('change', function () {
+            const newSize = this.value;
+            const currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.set('page', '1'); // Go to first page on size change
+            currentUrl.searchParams.set('pageSize', newSize);
+            window.location.href = currentUrl.toString();
+        });
+
+        // JS for navigating with the page number input box
+        function goToPage(pageNumber) {
+            const maxPage = parseInt('@Model.TotalPages');
+            if(pageNumber >= 1 && pageNumber <= maxPage) {
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('page', pageNumber);
+                window.location.href = currentUrl.toString();
+            }
+        }
+    </script>
+}

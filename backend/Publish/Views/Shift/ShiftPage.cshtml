@@ -1,0 +1,647 @@
+﻿@model List<EMSSolution.Models.Shift>
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title</title>
+    @*  <link rel="stylesheet" type="text/css" href="~/lib/bootstrap//dist//css/bootstrap.css" />
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" /> *@
+    <link rel="stylesheet" href="~/css/Style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e0e0e0;
+        }
+
+        .container {
+            width: 900px;
+            /* background-color: #d3d3d3; */
+            background-color: #ffff;
+            padding: 5px;
+            margin: 10px auto;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2px 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        input[type="text"],
+        input[type="time"],
+        input[type="number"] {
+            padding: 2px;
+            font-size: 14px;
+            border: 1px solid #aaa;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+
+        .radio-group {
+            margin-top: 20px;
+        }
+
+            .radio-group label {
+                margin-right: 15px;
+            }
+
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #ccc;
+            margin-bottom: 20px;
+        }
+
+            .tabs button {
+                flex: 1;
+                padding: 10px;
+                background: #eee;
+                border: none;
+                cursor: pointer;
+                font-weight: bold;
+            }
+
+                .tabs button.active {
+                    background: #ddd;
+                }
+
+        .tab-content {
+            display: none;
+        }
+
+            .tab-content.active {
+                display: block;
+            }
+
+    </style>
+
+
+</head>
+<body>
+
+
+    <h2 class="text-center">
+        Shift Definition
+        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar-clock">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+            <circle cx="16" cy="16" r="4"></circle>
+            <line x1="16" y1="14" x2="16" y2="16"></line>
+            <line x1="16" y1="16" x2="18" y2="16"></line>
+        </svg>
+    </h2>
+    @* <div class="container"> *@
+    <div class="tabs">
+        <button class="tab-button active" onclick="openTab('shiftdetail')">Shift Details</button>
+        <button class="tab-button" onclick="openTab('weekenddetail')">Weekend Details</button>
+    </div>
+    <div id="shiftdetail" class="tab-content active">
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label>Shift Code <span style="color:red">*</span></label>
+                <input type="text" id="shiftcode" required>
+            </div>
+            <div class="form-group">
+                <label>Shift Name <span style="color:red">*</span></label>
+                <input type="text" id="shiftname" required>
+            </div>
+
+            <div class="form-group">
+                <label>Shift Start Time <span style="color:red">*</span></label>
+                <input type="time" id="starttime" required>
+            </div>
+            <div class="form-group">
+                <label>Shift End Time <span style="color:red">*</span></label>
+                <input type="time" id="endtime" required>
+            </div>
+
+            <div class="form-group">
+                <label>Allowed Late Minutes</label>
+                <input type="number" id="latemninute">
+            </div>
+            <div class="form-group">
+                <label>Allowed Early Minutes</label>
+                <input type="number" id="earlyminute">
+            </div>
+
+            <div class="form-group full-width">
+                <label>Lunch Minutes</label>
+                <input type="number" id="lunchminute">
+            </div>
+
+            <div class="form-group">
+                <label>Working Hours <span style="color:red">*</span></label>
+                <input type="number" id="workinghour" required>
+            </div>
+            <div class="form-group">
+                <label>Minimum Minutes for OT</label>
+                <input type="number" id="otminminute">
+            </div>
+
+            <div class="form-group">
+                <label>Minutes to consider</label>
+                <input type="number" id="minutetoconsider">
+            </div>
+            <div class="form-group">
+                <label>Half Day</label>
+                <input type="number" id="halfday">
+            </div>
+
+            <div class="form-group full-width">
+                <label>Full Day</label>
+                <input type="number" id="fullday">
+            </div>
+        </div>
+
+    </div>
+    <div id="weekenddetail" class="tab-content">
+
+        <div class="container mt-5">
+            <h4>Define weekend days</h4>
+            @* <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="halfWeekendCheck" checked>
+                <label class="form-check-label" for="halfWeekendCheck">
+                    Half working day & half weekend
+                </label>
+            </div> *@
+
+            <div class="table-responsive">
+                <table class="table table-bordered text-center align-middle" id="tableweekend">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Day</th>
+                            <th>All</th>
+                            <th>1st</th>
+                            <th>2nd</th>
+                            <th>3rd</th>
+                            <th>4th</th>
+                            <th>5th</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var day in new[] { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" })
+                        {
+                            <tr id="row-@day">
+                                <td>@day</td>
+
+                                <!-- 'All' column checkbox -->
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input all-check" type="checkbox" id="@day-All"
+                                               onchange="toggleRow('@day')" @(day == "Sunday" ? "checked" : "")>
+                                    </div>
+                                </td>
+
+                                <!-- Week-specific checkboxes and dropdowns -->
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <td>
+                                        <div class="form-check">
+                                            @* <input class="form-check-input" type="checkbox" id="@day-@i"
+                                                   class="week-check @day" @(day == "Sunday" || day == "Saturday" ? "checked" : "")> *@
+                                            <input class="form-check-input" type="checkbox" id="@day-@i"
+                                                   class="week-check @day" @(day == "Sunday" ? "checked" : "")>
+                                        </div>
+
+
+                                        <select class="form-select mt-2">
+                                            <option value="Full Day" selected>Full Day</option>
+                                            <option value="2nd Half">2nd Half</option>
+                                        </select>
+
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+    <br>
+    <div class="flex">
+        <button id="btnsummit" type="submit" class="btn btn-outline-primary"
+                style="width:155px" accesskey="s">
+            Save
+        </button>
+        <button id="btnrefresh" type="button" class="btn btn-outline-primary" style="width:155px" accesskey="r">Refresh</button>
+        <button id="btnDelete" type="button" class="btn btn-outline-primary" style="width:155px" accesskey="d">Delete</button>
+    </div>
+    <br />
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+        <input type="text" id="searchBox" class="col-4 display: flex margin-right" placeholder="Search..." onkeyup="searchTable()" />
+    </div>
+
+
+    <div class="table-responsive">
+        <table id="myTable" class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>SrNo</th>
+                    <th>Shift Code</th>
+                    <th>Shift Name</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Lunch Min</th>
+                    <th>Allowed Late</th>
+                    <th>Allowed Early</th>
+                    <th>Working Hours</th>
+                    <th>OT Min</th>
+                    <th>Minutes to consider</th>
+                    <th>Half Day</th>
+                    <th>Full Day</th>
+                    <th hidden> Masterid</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                @{
+                    var intRow = 1;
+
+                    foreach (var entry in Model)
+                    {
+
+                        <tr>
+                            <td>@intRow</td>
+                            <td>@entry.sShiftCode</td>
+                            <td>@entry.sShiftName</td>
+                            <td>@entry.sStartTime</td>
+                            <td>@entry.sEndTime</td>
+                            <td>@entry.iBreakduration</td>
+                            <td>@entry.iAllowlateminute</td>
+                            <td>@entry.iAllowearlyminute</td>
+                            <td>@entry.fWorkingHour</td>
+                            <td>@entry.iMinOTminute</td>
+                            <td>@entry.iMinuteToConsider</td>
+                            <td>@entry.fHalfday</td>
+                            <td>@entry.fFullDay</td>
+                            <td hidden>@entry.iMasterid</td>
+                        </tr>
+                        intRow = intRow + 1;
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+    @* </div> *@
+</body>
+</html>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="~/js/GenericFunction.js"></script>
+<script>
+    $(document).ready(function () {
+        debugger;
+        var iRowNo = 0;
+        var currentRow;
+        var masterid=0;
+        clearControl();
+    });
+
+    $('#btnsummit').click(function (e) {
+        debugger;
+        e.preventDefault();
+        var shiftCode = $('#shiftcode').val();
+        var shiftName = $('#shiftname').val();
+        var startTime = $('#starttime').val();
+        var endTime = $('#endtime').val();
+        var lateMinute = $('#latemninute').val() || 0;
+        var earlyMinute =$('#earlyminute').val() || 0;
+
+        var lunchMinute = $('#lunchminute').val()|| 0;
+        var workingHour = $('#workinghour').val()|| 0;
+        var otMinMinute = $('#otminminute').val()|| 0;
+        var minuteToConsider = $('#minutetoconsider').val()|| 0;
+        var halfDay = $('#halfday').val()|| 0;
+        var fullDay = $('#fullday').val()|| 0;
+        var Masterid = masterid;
+
+        if (!validateForm()) {
+            //alert('Form is invalid. Please fill in all required fields.');
+            return;
+        }
+        $('#loader').show();
+
+        //get all data from table tableweekend
+        var weekendData = [];
+        $('#tableweekend tbody tr').each(function () {
+            var day = $(this).find('td:first').text();
+            var allChecked = $(this).find('input[type="checkbox"][id$="-All"]').is(':checked');
+            var weekData = {
+                sDay: day,
+                week1Selected: allChecked,
+                week1WeekendType: $(this).find('select').eq(0).val(),
+                week2Selected: $(this).find('input[type="checkbox"][id$="-2"]').is(':checked'),
+                week2WeekendType: $(this).find('select').eq(1).val(),
+                week3Selected: $(this).find('input[type="checkbox"][id$="-3"]').is(':checked'),
+                week3WeekendType: $(this).find('select').eq(2).val(),
+                week4Selected: $(this).find('input[type="checkbox"][id$="-4"]').is(':checked'),
+                week4WeekendType: $(this).find('select').eq(3).val(),
+                week5Selected: $(this).find('input[type="checkbox"][id$="-5"]').is(':checked'),
+                week5WeekendType: $(this).find('select').eq(4).val()
+            };
+            weekendData.push(weekData);
+        });
+
+        var shiftData=JSON.stringify(
+            {
+                shiftdata: {
+                    iMasterid: Masterid, sShiftCode: shiftCode
+                    , sShiftName: shiftName, sStartTime: startTime
+                    ,sEndTime:endTime,iBreakduration:lunchMinute
+                    ,iAllowlateminute:lateMinute,iAllowearlyminute:earlyMinute
+                    ,fWorkingHour:workingHour,iMinOTminute:otMinMinute
+                    ,iMinuteToConsider:minuteToConsider
+                    ,fHalfday:halfDay,fFullDay:fullDay
+                    },
+                shiftWeekendData: weekendData
+
+            });
+
+        $.ajax({
+            type: 'post',
+            datatype: 'json',
+            url: '@Url.Action("SaveShift", "Shift")',
+            data:shiftData,
+            contentType: "application/json; charset=utf-8",
+            success: function (response) {
+                debugger;
+                updateTable(response.data, response.isNew);
+                clearControl();
+                alert('Shift saved successfully!');
+            },
+            error: function (xhr, status, error) {
+                alert('Error saving shift. Please try again.');
+            }
+        });
+
+        // Perform your AJAX request here
+    });
+
+    $('#btnDelete').click(function (e) {
+        debugger;
+        e.preventDefault();
+        if (masterid == 0) {
+            alert('Please select a row to delete.');
+            return;
+        }
+        if (confirm('Are you sure you want to delete this shift?')) {
+            $.ajax({
+                type: 'post',
+                datatype: 'json',
+                url: '@Url.Action("DeleteShift", "Shift")',
+                data: { iMasterId: masterid },
+
+                success: function (response) {
+                    alert('Shift deleted successfully!');
+                    currentRow.remove();
+                    clearControl();
+                },
+                error: function (xhr, status, error) {
+                    alert('Error deleting shift. Please try again.');
+                }
+            });
+        }
+    });
+
+    $('body').on('click', '#myTable tbody tr', function () {
+        debugger;
+        clearControl();
+        var shiftCode = $(this).find('td:nth-child(2)').text();
+        var shiftName = $(this).find('td:nth-child(3)').text();
+        var startTime = $(this).find('td:nth-child(4)').text();
+        var endTime = $(this).find('td:nth-child(5)').text();
+        var lateMinute = $(this).find('td:nth-child(6)').text();
+        var earlyMinute = $(this).find('td:nth-child(7)').text();
+        var lunchMinute = $(this).find('td:nth-child(8)').text();
+        var workingHour = $(this).find('td:nth-child(9)').text();
+        var otMinMinute = $(this).find('td:nth-child(10)').text();
+        var minuteToConsider = $(this).find('td:nth-child(11)').text();
+        var halfDay = $(this).find('td:nth-child(12)').text();
+        var fullDay = $(this).find('td:nth-child(13)').text();
+
+        masterid = $(this).find('td:nth-child(14)').text();
+
+        $('#shiftcode').val(shiftCode);
+        $('#shiftname').val(shiftName);
+        $('#starttime').val(startTime);
+        $('#endtime').val(endTime);
+        $('#latemninute').val(lateMinute);
+        $('#earlyminute').val(earlyMinute);
+        $('#lunchminute').val(lunchMinute);
+        $('#workinghour').val(workingHour);
+        $('#otminminute').val(otMinMinute);
+        $('#minutetoconsider').val(minuteToConsider);
+        $('#halfday').val(halfDay);
+        $('#fullday').val(fullDay);
+
+        currentRow = $(this).closest("tr");
+
+        //get shiftwiseweekend ajax call
+        $.ajax({
+            type: 'post',
+            datatype: 'json',
+            url: '@Url.Action("GetShiftWeekendData", "Shift")',
+            data: { iShiftId: masterid },
+            success: function (response) {
+                debugger;
+                var weekendData = response.data;
+                for (var i = 0; i < weekendData.length; i++) {
+                    var day = weekendData[i].sDay;
+                    $('#tableweekend tbody tr#row-' + day + ' input[type="checkbox"][id$="-All"]').prop('checked', weekendData[i].week1Selected);
+                    $('#tableweekend tbody tr#row-' + day + ' input[type="checkbox"][id$="-1"]').prop('checked', weekendData[i].week2Selected);
+                    $('#tableweekend tbody tr#row-' + day + ' select').eq(0).val(weekendData[i].week1WeekendType);
+                    $('#tableweekend tbody tr#row-' + day + ' input[type="checkbox"][id$="-2"]').prop('checked', weekendData[i].week2Selected);
+                    $('#tableweekend tbody tr#row-' + day + ' select').eq(1).val(weekendData[i].week2WeekendType);
+                    $('#tableweekend tbody tr#row-' + day + ' input[type="checkbox"][id$="-3"]').prop('checked', weekendData[i].week3Selected);
+                    $('#tableweekend tbody tr#row-' + day + ' select').eq(2).val(weekendData[i].week3WeekendType);
+                    $('#tableweekend tbody tr#row-' + day + ' input[type="checkbox"][id$="-4"]').prop('checked', weekendData[i].week4Selected);
+                    $('#tableweekend tbody tr#row-' + day + ' select').eq(3).val(weekendData[i].week4WeekendType);
+                    $('#tableweekend tbody tr#row-' + day + ' input[type="checkbox"][id$="-5"]').prop('checked', weekendData[i].week5Selected);
+                    $('#tableweekend tbody tr#row-' + day + ' select').eq(4).val(weekendData[i].week5WeekendType);
+                }
+            },
+            error: function (xhr, status, error) {
+                alert('Error fetching shift-wise weekend data. Please try again.');
+            }
+        });
+    });
+    $('#btnrefresh').click(function (e) {
+        e.preventDefault();
+        clearControl();
+    });
+
+    function clearControl() {
+        debugger;
+        $('#shiftcode').val('');
+        $('#shiftname').val('');
+        $('#starttime').val('');
+        $('#endtime').val('');
+        $('#latemninute').val('');
+        $('#earlyminute').val('');
+        $('#lunchminute').val('');
+        $('#workinghour').val('');
+        $('#otminminute').val('');
+        $('#minutetoconsider').val('');
+        $('#halfday').val('');
+        $('#fullday').val('');
+        $('#tableweekend tbody input[type="checkbox"]').prop('checked', false);
+        $('#tableweekend tbody select').val('Full Day');
+        $('#tableweekend tbody input[type="checkbox"][id$="-All"]').prop('checked', false);
+        $('#tableweekend tbody input[type="checkbox"][id$="-1"]').prop('checked', false);
+        $('#tableweekend tbody input[type="checkbox"][id$="-2"]').prop('checked', false);
+        $('#tableweekend tbody input[type="checkbox"][id$="-3"]').prop('checked', false);
+        $('#tableweekend tbody input[type="checkbox"][id$="-4"]').prop('checked', false);
+        $('#tableweekend tbody input[type="checkbox"][id$="-5"]').prop('checked', false);
+        $('#tableweekend tbody select').eq(0).val('Full Day');
+        $('#tableweekend tbody select').eq(1).val('Full Day');
+        $('#tableweekend tbody select').eq(2).val('Full Day');
+        $('#tableweekend tbody select').eq(3).val('Full Day');
+        $('#tableweekend tbody select').eq(4).val('Full Day');
+
+        masterid=0;
+        $("#shiftcode").focus();
+    }
+
+    function validateForm() {
+        // var shiftCode = $('#shiftcode').val();
+        // var shiftName = $('#shiftname').val();
+        // var startTime = $('#starttime').val();
+        // var endTime = $('#endtime').val();
+        // var workingHour = $('#workinghour').val();
+
+        let shiftCode =document.getElementById('shiftcode');
+        shiftCode.value=shiftCode.value.trim();
+        let shiftName =document.getElementById('shiftname');
+        shiftName.value=shiftName.value.trim();
+
+        let startTime =document.getElementById('starttime');
+
+        let endTime =document.getElementById('endtime');
+        let workingHour =document.getElementById('workinghour');
+        workingHour.value= workingHour.value.trim();
+        shiftCode.setCustomValidity('');
+        shiftName.setCustomValidity('');
+        startTime.setCustomValidity('');
+        endTime.setCustomValidity('');
+        workingHour.setCustomValidity('');
+        if (!shiftCode.checkValidity()) {
+            shiftCode.setCustomValidity('Please enter a Shift Code');
+            shiftCode.reportValidity();
+            return false;
+        }
+        if (!shiftName.checkValidity()) {
+            shiftName.setCustomValidity('Please enter a Shift Name');
+            shiftName.reportValidity();
+            return false;
+        }
+        if (!startTime.checkValidity()) {
+            startTime.setCustomValidity('Please enter a Start Time');
+            startTime.reportValidity();
+            return false;
+        }
+        if (!endTime.checkValidity()) {
+            endTime.setCustomValidity('Please enter an End Time');
+            endTime.reportValidity();
+            return false;
+        }
+        if (!workingHour.checkValidity()) {
+            workingHour.setCustomValidity('Please enter Working Hours');
+            workingHour.reportValidity();
+            return false;
+        }
+        // if (shiftCode === '' || shiftName === '' || startTime === '' || endTime === '' || workingHour === '') {
+        //     alert('Please fill in all required fields.');
+        //     return false;
+        // }
+        return true;
+    }
+
+    updateTable = function (res, isNew) {
+        debugger;
+        //var table = $('#myTable tbody');
+         var rowCount = $('#myTable tr').length;
+        if (isNew) {
+            //table.empty();
+            for (let i = 0; i < res.length; i++) {
+
+                $('#myTable').append('<tr>' +
+                    '<td>' + (rowCount) + '</td>' +
+                    '<td >' + res[i].sShiftCode + '</td> ' +
+                    '<td >' + res[i].sShiftName + '</td> ' +
+                    '<td >' + res[i].sStartTime + '</td> ' +
+                    '<td >' + res[i].sEndTime + '</td> ' +
+                    '<td >' + res[i].iBreakduration + '</td> ' +
+                    '<td >' + res[i].iAllowlateminute + '</td> ' +
+                    '<td >' + res[i].iAllowearlyminute + '</td> ' +
+                    '<td >' + res[i].fWorkingHour + '</td> ' +
+                    '<td >' + res[i].iMinOTminute + '</td> ' +
+                    '<td >' + res[i].iMinuteToConsider + '</td> ' +
+                    '<td >' + res[i].fHalfday + '</td> ' +
+                    '<td >' + res[i].fFullDay + '</td> ' +
+                    '<td style="display:none;">' + res[i].iMasterid + '</td > ' +
+                    '</tr>');
+            }
+        }
+        else {
+
+            $("#myTable").val(currentRow.find("td:eq(1)").text(res[0].sShiftCode));
+            $("#myTable").val(currentRow.find("td:eq(2)").text(res[0].sShiftName));
+            $("#myTable").val(currentRow.find("td:eq(3)").text(res[0].sStartTime));
+            $("#myTable").val(currentRow.find("td:eq(4)").text(res[0].sEndTime));
+            $("#myTable").val(currentRow.find("td:eq(5)").text(res[0].iBreakduration));
+            $("#myTable").val(currentRow.find("td:eq(6)").text(res[0].iAllowlateminute));
+            $("#myTable").val(currentRow.find("td:eq(7)").text(res[0].iAllowearlyminute));
+            $("#myTable").val(currentRow.find("td:eq(8)").text(res[0].fWorkingHour));
+            $("#myTable").val(currentRow.find("td:eq(9)").text(res[0].iMinOTminute));
+            $("#myTable").val(currentRow.find("td:eq(10)").text(res[0].iMinuteToConsider));
+            $("#myTable").val(currentRow.find("td:eq(11)").text(res[0].fHalfday));
+            $("#myTable").val(currentRow.find("td:eq(12)").text(res[0].fFullDay));
+            $("#myTable").val(currentRow.find("td:eq(13)").text(res[0].iMasterid));
+        }
+    };
+
+      function openTab(tabName) {
+        // Hide all tab content
+        var tabs = document.querySelectorAll(".tab-content");
+        tabs.forEach(tab => tab.classList.remove("active"));
+
+        // Remove active class from buttons
+        var buttons = document.querySelectorAll(".tab-button");
+        buttons.forEach(btn => btn.classList.remove("active"));
+
+        // Show selected tab
+        document.getElementById(tabName).classList.add("active");
+
+        // Add active class to clicked button
+        event.currentTarget.classList.add("active");
+    }
+
+    function toggleRow(day) {
+        var allChecked = document.getElementById(day + "-All").checked;
+
+        for (var i = 1; i <= 5; i++) {
+            document.getElementById(day + "-" + i).checked = allChecked;
+        }
+    }
+</script>
+
+

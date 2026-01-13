@@ -1,0 +1,328 @@
+﻿
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title</title>
+
+    <link rel="stylesheet" href="~/css/Style.css">
+    <style>
+        .flex {
+            display: flex;
+            gap: 16px;
+        }
+
+        body {
+            background-color: #cccccc;
+        }
+
+        input:invalid {
+            border: 2px solid red;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2 class="text-center">
+            User Creation
+            <svg width="25" height="25" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="32" fill="#E0F7FA" />
+                <circle cx="32" cy="24" r="12" fill="#00ACC1" />
+                <path d="M16 48c0-8.837 7.163-16 16-16s16 7.163 16 16v2H16v-2z" fill="#4DD0E1" />
+            </svg>
+        </h2>
+        <div asp-validation-summary="All" class="text-bg-danger"></div>
+        <div class="form-group mb-3">
+
+            <label for="uname" class="form-label">User Name <span style="color: red;">*</span> </label>
+            <input type="text" name="uname" id="uname" class="form-control" required
+                   placeholder="Enter Name [Mandatory]" />
+
+        </div>
+        <div class="form-group mb-3">
+
+            <label for="upassword" class="form-label">Password <span style="color: red;">*</span> </label>
+            <input type="password" name="upassword" id="upassword" class="form-control" required
+                   placeholder="Enter Password [Mandatory]" />
+
+        </div>
+        <div class="form-group mb-3">
+            <label for="emailid" class="form-label">Email</label>
+            <input type="email" class="form-control" name="emailid" id="emailid" placeholder="Enter Email [Optional]" />
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="role">Role:</label>
+            <select id="role" name="role" class="form-control">
+                <option value="">Select</option>
+                @foreach (var item in ViewBag.Roles)
+                {
+                    <option value="@item.Value">@item.Value</option>
+                }
+            </select>
+        </div>
+        <div class="form-group mb-3">
+            <label for="employee">Employee:</label>
+            <select id="employee" name="employee" class="form-control">
+                <option value="">Select</option>
+                @foreach (var item in ViewBag.Employee)
+                {
+                    <option value="@item.iMasterid">@item.sEmployeeName</option>
+                }
+            </select>
+        </div>
+
+
+        <div class="flex">
+            <button id="btnSave" type="button" class="btn btn-outline-primary" style="width:120px" accesskey="s">
+                Save
+                <svg width="25" height="25" color="green">
+                    <use xlink:href="#icon-save"></use>
+                </svg>
+            </button>
+            <button id="btnrefresh" type="button" class="btn btn-outline-primary" style="width:120px" accesskey="r">
+                Refresh
+                <svg width="25" height="25">
+                    <use xlink:href="#icon-refresh"></use>
+                </svg>
+            </button>
+            <button id="btnDelete" type="button" class="btn btn-outline-primary" style="width:120px" accesskey="d">
+                Delete
+                <svg width="25" height="25" color="red">
+                    <use xlink:href="#icon-delete"></use>
+                </svg>
+            </button>
+        </div>
+
+
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+        <input type="text" id="searchBox" class="col-4 display: flex margin-right" placeholder="Search..." onkeyup="searchTable()" />
+    </div>
+
+    <div class="table-responsive">
+        <table id="myTable" class="table table-hover table-bordered">
+            <thead>
+                <tr>
+                    <th> Sno</th>
+                    <th> User Name</th>
+                    <th> Password</th>
+                    <th> Email</th>
+                    <th> Role</th>
+                    <th hidden> Employee</th>
+                    <th hidden> Masterid</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    var intRow = 1;
+
+                    foreach (var entry in ViewBag.Users)
+                    {
+
+                        <tr>
+                            <td>@intRow</td>
+                            <td>@entry.UserName</td>
+                            <td>
+                                <input disabled type="password" name="Password" class="form-control" value="@entry.Salt" />
+                            </td>
+                            <td>@entry.Email</td>
+                            <td>@entry.Role</td>
+                            <td hidden>@entry.iEmployee</td>
+                            <td hidden>@entry.Id</td>
+                        </tr>
+                        intRow = intRow + 1;
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
+<script>
+    $(document).ready(function () {
+        debugger;
+        var iRowNo = 0;
+        var currentRow;
+        var masterid = 0;
+        $('#employee').select2({
+            placeholder: "Select Employee",
+            allowClear: true
+        });
+        $('#role').select2({
+            placeholder: "Select Role",
+            allowClear: true
+        });
+
+        focusonselectcontrol('#employee');
+        focusonselectcontrol('#role');
+        clearControl();
+    });
+
+     function clearControl() {
+        $('#uname').val('');
+        $('#upassword').val('');
+        $('#emailid').val('');
+        $('#role').val('').trigger('change');
+        $('#employee').val('').trigger('change');
+        masterid = 0;
+        $('input[name="upassword"]').prop('disabled', false);
+        $("#uname").focus();
+    }
+    $('#btnrefresh').click(function (e) {
+        debugger;
+        clearControl();
+    });
+
+    $('#btnSave').click(function (e) {
+        debugger;
+        $('#loader').show();
+        let name =document.getElementById('uname');
+        name.value=name.value.trim();
+        let password =document.getElementById('upassword');
+        password.value=password.value.trim();
+
+        let urole=document.getElementById('role');
+
+
+        name.setCustomValidity('');
+        password.setCustomValidity('');
+
+        if (!name.checkValidity()) {
+            name.setCustomValidity('Please enter a User name');
+            name.reportValidity();
+            return;
+        }
+        if (!password.checkValidity()) {
+            password.setCustomValidity('Please enter a Password');
+            password.reportValidity();
+            return;
+        }
+        if(urole.value==''){
+            alert('Please select role');
+            return;
+        }
+
+        var uname = $('#uname').val();
+        var upassword = $('#upassword').val();
+        var emailid = $('#emailid').val();
+        var role = $('#role').val();
+        var employee = $('#employee').val() || 0;
+
+        var requestData= JSON.stringify({
+            'Id': masterid,
+            'UserName': uname,
+            'PasswordHash': upassword,
+            'Email': emailid,
+            'Role': role,
+            'iEmployee': employee
+        });
+        var Masterid = masterid;
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("UserCreation", "Account")',
+            data: requestData,
+            contentType: "application/json; charset=utf-8",
+            caches: true,
+            success: function (response) {
+                debugger;
+                if (response.status == 1) {
+                    updateTable(response.data, response.isNew)
+
+                    clearControl();
+                    alert(response.message);
+
+                } else {
+                    alert(response.message);
+                }
+                $('#loader').hide();
+            },
+            error: function (xhr, status, error) {
+                alert("Error occurred while saving data.");
+                $('#loader').hide();
+            }
+        });
+    });
+
+    function updateTable(data, isNew) {
+        debugger;
+        if (isNew) {
+            var rowCount = $('#myTable tr').length;
+            var newRow = '<tr>' +
+                '<td>' + (rowCount) + '</td>' +
+                '<td>' + data[0].userName + '</td>' +
+                '<td> <input disabled type="password" name="Password" class="form-control" value="' + data[0].userName + '" /></td>' +
+                '<td>' + data[0].email + '</td>' +
+                '<td>' + data[0].role + '</td>' +
+                '<td style="display:none;">' + data[0].iEmployee + '</td>' +
+                '<td style="display:none;">' + data[0].id + '</td>' +
+                '</tr>';
+            $('#myTable tbody').append(newRow);
+        } else {
+            currentRow.find('td').eq(1).html(data[0].userName);
+            //currentRow.find('td').eq(2).html(data[0].salt);
+            currentRow.find('td').eq(2).html(`<input type="password" class="form-control" value="${data[0].salt}" readonly>`);
+            currentRow.find('td').eq(3).html(data[0].email);
+            currentRow.find('td').eq(4).html(data[0].role);
+            currentRow.find('td').eq(5).html(data[0].iEmployee);
+            currentRow.find('td').eq(6).html(data[0].id);
+        }
+    }
+
+    $('#btnDelete').click(function (e) {
+        debugger;
+        if (masterid == 0) {
+            alert('Please select a record to delete');
+            return;
+        }
+        if (confirm("Are you sure you want to delete this record?")) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("DeleteUser", "Account")',
+                data: { id: masterid },
+
+                success: function (response) {
+                    debugger;
+                    if (response.status == true) {
+                        currentRow.remove();
+                        clearControl();
+                        alert(response.message);
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert("Error occurred while deleting data.");
+                }
+            });
+        }
+    });
+
+    $('body').on('click', 'tr', function () {
+        debugger;
+        var name = $(this).find("td").eq(1).html();
+        //var password = $(this).find("td").eq(2).html();
+        var password=$('input[name="Password"]').attr("value")
+        var email = $(this).find("td").eq(3).html();
+        var role = $(this).find("td").eq(4).html();
+        var employee = $(this).find("td").eq(5).html();
+        masterid = $(this).find("td").eq(6).html();
+        $('#uname').val(name);
+        $('#upassword').val(password);
+        $('#emailid').val(email);
+        $('#role').val(role).trigger('change');
+        $('#employee').val(employee).trigger('change');
+
+        iRowNo = $(this).closest("tr")[0].rowIndex;
+        currentRow = $(this).closest("tr");
+
+        $('input[name="upassword"]').prop('disabled', true);
+
+    });
+
+
+</script>

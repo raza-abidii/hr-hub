@@ -1,0 +1,716 @@
+﻿@{
+    var months = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.MonthNames;
+}
+@{
+    // ViewBag.Employees is assumed to be a List of objects with "Name" and "Code"
+    var employeesJson = Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Employees);
+    var startMonth = ViewBag.startMonth;
+}
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Report</title>
+
+
+    <style>
+        #tooltip {
+            position: absolute;
+            background: #333;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: none;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+
+
+        table.attendance-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        .attendance-table thead {
+            background-color: #1e88e5;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .attendance-table th, .attendance-table td {
+            padding: 10px 14px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+            white-space: nowrap;
+        }
+
+        .attendance-table tbody tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+
+        .attendance-table tbody tr:hover {
+            background-color: #f1f7ff;
+        }
+
+        .employee-name {
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .select2-container {
+            width: 100% !important;
+        }
+
+        .select-dropdown {
+            width: 100%;
+        }
+    </style>
+
+    <link rel="stylesheet" href="~/css/Style.css">
+</head>
+<body>
+    <div id="loader-overlay">
+        <img src="../Content/progress.gif" class="loader-img" />
+    </div>
+
+    <div class="container">
+
+        <h4 class="text-center d-flex justify-content-center align-items-center gap-2">
+            Employee Attendance Report
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="25" height="25" role="img" aria-label="Attendance report monthly - custom date range">
+                <!-- calendar background -->
+                <rect x="2" y="3" width="24" height="20" rx="3" fill="#EAF4FF" stroke="#1976D2" stroke-width="1.4" />
+                <!-- calendar header -->
+                <rect x="2" y="3" width="24" height="4.6" rx="2" fill="#1976D2" />
+                <!-- small grid -->
+                <line x1="6" y1="10" x2="22" y2="10" stroke="#1976D2" stroke-width="0.9" />
+                <line x1="10" y1="7.8" x2="10" y2="17" stroke="#1976D2" stroke-width="0.9" />
+                <line x1="14.5" y1="7.8" x2="14.5" y2="17" stroke="#1976D2" stroke-width="0.9" />
+
+                <!-- left date pill (start) -->
+                <rect x="4.6" y="18.4" rx="2.6" ry="2.6" width="7.6" height="4.6" fill="#fff" stroke="#0288D1" stroke-width="0.9" />
+                <text x="8.4" y="21.1" font-family="Segoe UI, Arial" font-size="2.6" fill="#0288D1" text-anchor="middle">1</text>
+
+                <!-- arrow between pills -->
+                <path d="M15.2 20.7 L17 20.7 L16.1 19.6 Z" fill="#616161" />
+
+                <!-- right date pill (end) -->
+                <rect x="18" y="18.4" rx="2.6" ry="2.6" width="5.2" height="4.6" fill="#43A047" stroke="#2E7D32" stroke-width="0.9" />
+                <text x="20.6" y="21.1" font-family="Segoe UI, Arial" font-size="2.6" fill="#ffffff" text-anchor="middle">31</text>
+            </svg>
+        </h4>
+        <div class="form-group mb-3">
+            <label class="bold-label d-block mb-1">Report Type:</label>
+            <div class="d-flex gap-3">
+                <label class="mb-0">
+                    <input type="radio" name="ReportType" value="EmployeeWise" checked onchange="toggleAllocationView()" />
+                    Employee-wise
+                </label>
+                <label class="mb-0">
+                    <input type="radio" name="ReportType" value="BranchWise" onchange="toggleAllocationView()" />
+                    Branch-wise
+                </label>
+            </div>
+        </div>
+        <div id="employeeDropdown" class="form-group mb-3">
+            <label class="bold-label">Employee</label>
+            <select id="employee" name="employee" class="select-dropdown">
+                <option>Select Employee</option>
+                @foreach (var employee in ViewBag.Employees)
+                {
+                    <option value="@employee.iMasterid">@employee.sEmployeeName</option>
+                }
+            </select>
+        </div>
+        <div id="branchDropdown" class="form-group mb-3" style="display: none; ">
+            <label class="bold-label">Branch</label>
+            <select id="branch" name="branch" class="select-dropdown">
+                <option>Select Branch</option>
+                @foreach (var branch in ViewBag.Branch)
+                {
+                    <option value="@branch.iMasterid">@branch.sName</option>
+                }
+            </select>
+        </div>
+        <div class="flex gap-4 mb-3">
+            <!-- From Date -->
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700">From Date</label>
+                <input type="date"
+                    id="fromDate"
+                    name="fromDate"
+                    class="select-dropdown w-full"
+                    value="@ViewBag.FromDate?.ToString("yyyy-MM-dd")" />
+            </div>
+
+            <!-- To Date -->
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700">To Date</label>
+                <input type="date"
+                    id="toDate"
+                    name="toDate"
+                    class="select-dropdown w-full"
+                    value="@ViewBag.ToDate?.ToString("yyyy-MM-dd")" />
+            </div>
+        </div>
+        @* </div> *@
+
+
+        <div class="flex">
+            <button id="display" type="button" class="btn btn-outline-primary" style="width:135px;height:40px" accesskey="s">Display</button>
+            <button id="exportexcel" type="button" class="btn btn-outline-primary" style="width:135px;height:40px" accesskey="r">Export to Excel</button>
+            @* <button id="printReport" type="button" class="btn btn-outline-primary" style="width:135px;height:40px" accesskey="p">Print</button> *@
+        </div>
+    </div>
+
+    <div class="attendance-container overflow-x-auto p-4 bg-white shadow rounded-lg">
+        <table id="myTable" class="attendance-table min-w-full text-sm text-left text-gray-700 border border-gray-200">
+            <thead class="bg-gray-100 text-xs uppercase text-gray-600" id="tableHeader">
+                <tr>
+                    <th class="px-2 py-1 border-r border-gray-200">Employee Name</th>
+                    <th class="px-2 py-1 border-r border-gray-200">Employee Id</th>
+                    <th class="px-2 py-1 border-r border-gray-200">Branch Name</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200" id="tableBody">
+                <tr>
+                    <td class="px-2 py-1 whitespace-nowrap border-r border-gray-100">XXX</td>
+                    <td class="px-2 py-1 whitespace-nowrap border-r border-gray-100">ZZZ</td>
+                    <td class="px-2 py-1 whitespace-nowrap border-r border-gray-100">BBB</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <br />
+    <div id="legend" style="display: flex; flex-wrap: wrap; gap: 1rem; padding: 1rem; border: 1px solid #ccc; border-radius: 8px;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 20px; height: 20px; background-color: #0DCAF0;"></div>
+            <span>Public Holiday</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 20px; height: 20px; background-color: #F19E9E;"></div>
+            <span>Late In</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 20px; height: 20px; background-color: #9D5050;"></div>
+            <span>Early Out</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 20px; height: 20px; background-color: #E58110;"></div>
+            <span>Late In/Early Out</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 20px; height: 20px; background-color: #f8d7da;"></div>
+            <span>Absent</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 20px; height: 20px; background-color: #155724;"></div>
+            <span>Ontime</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 20px; height: 20px; background-color: #28a745;"></div>
+            <span>Leave</span>
+        </div>
+
+    </div>
+
+    <div id="tooltip"></div>
+
+    <br />
+
+</body>
+
+</html>
+
+<script src="/js/GenericFunction.js"></script>
+<script>
+
+     $(document).ready(function() {
+        $('#employee').select2({
+            placeholder: "Select employee",
+            allowClear: true
+        });
+        $('#branch').select2({
+            placeholder: "Select Branch",
+            allowClear: true
+        });
+        // $('#monthSelect').select2({
+        //     placeholder: "Select Month",
+        //     allowClear: true
+        // });
+        // $('#yearSelect').select2({
+        //     placeholder: "Select Year",
+        //     allowClear: true
+        // });
+
+        focusonselectcontrol("#employee");
+        focusonselectcontrol("#branch");
+        // focusonselectcontrol("#monthSelect");
+        // focusonselectcontrol("#yearSelect");
+
+        $('#loader-overlay').hide();
+
+     });
+
+     // Event listener for the display button
+     //ajax call attendanceReport/GetAttendanceReportData
+        $("#display").click(function () {
+            debugger;
+            var displayType = $("input[name='DisplayType']:checked").val();
+
+            var startday= '@ViewBag.startMonth';
+            // if (startday == 1)
+            // {
+            //     generateTableHeaderdaystartfrom1();
+            // }
+            // else
+            // {
+
+            //     generateTableHeader();
+
+            // }
+
+
+            generateTableHeader();
+            var employee = $("#employee").val();
+            var employeename=$("#employee").find('option:selected').text()
+            var branch = $("#branch").val();
+            var branchname=$("#branch").find('option:selected').text()
+            var fromDate = $("#fromDate").val();
+            var toDate = $("#toDate").val();
+            var reportType = $("input[name='ReportType']:checked").val();
+            if(reportType=="EmployeeWise")
+            {
+                // if (!month || !year) {
+                //     alert("Please select Month,Year ");
+                //     return;
+                // }
+            }
+            else
+            {
+                if (branchname=='Select Branch' ) {
+                    alert("Please select branch");
+                    return;
+                }
+               
+            }
+            
+
+            if(fromDate>toDate)
+            {
+                alert("from date can not be greater than to date");
+                return;
+            }
+
+            $('#loader-overlay').show();
+            debugger;
+            $.ajax({
+                url: '@Url.Action("GetAttendanceReportData", "AttendanceReportDateRange")',
+                type: 'post',
+                data: {
+                    iEmployee: employee,
+                    iBranch: branch,
+                    FromDate: fromDate,
+                    ToDate: toDate,
+                    EmployeeName:employeename,
+                    BranchName:branchname,
+                    ReportType: reportType
+                },
+                success: function (response) {
+                    debugger;
+                    if(response.success==true)
+                        displayData(response.data)
+
+                    else
+                        alert (response.message);
+
+                        $('#loader-overlay').hide();
+                },
+                error: function (xhr, status, error) {
+                    $('#loader-overlay').hide();
+                    console.error("Error fetching data:", error);
+                }
+            });
+        });
+
+        //exporttoexcel
+        $("#exportexcel").click(function () {
+            debugger;
+
+           
+            var fromdate  = $("#fromDate").val();
+            var todate  = $("#toDate").val();
+            $('#loader-overlay').show();
+            debugger;
+            var tabledata= getTableData();
+            $.ajax({
+                url: '@Url.Action("ExportToExcel", "AttendanceReportDateRange")',
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                
+                data: JSON.stringify({
+                    attendanceData: tabledata,
+                    fromdate: fromdate,
+                    todate: todate
+                }),
+                xhrFields: {
+                    responseType: 'blob' // Excel file response
+                },
+                success: function (data, status, xhr) {
+                    debugger;
+                    // Try to get filename from content-disposition
+                    var disposition = xhr.getResponseHeader('Content-Disposition');
+                    var matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+                    var filename = (matches != null && matches[1]) ? matches[1].replace(/['"]/g, '') : "AttendanceReport.xlsx";
+
+                    // Create a link and download
+                    var blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                    var url = window.URL.createObjectURL(blob);
+
+                    var a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(url);
+                    $('#loader-overlay').hide();
+                },
+                error: function (xhr, status, error) {
+                    $('#loader-overlay').hide();
+                    console.log("Error fetching data:", error);
+                }
+            });
+        });
+
+        function getTableData() {
+            debugger;
+            const table = document.getElementById("myTable");
+            const data = [];
+
+            var headers = [];
+            $('table thead th').each(function() {
+                headers.push($(this).text().trim());
+            });
+
+            debugger;
+            for (let i = 1; i < table.rows.length; i++) {
+                const row = table.rows[i];
+                const rowData = {};
+                for (let j = 0; j < row.cells.length; j++) {
+                    const cell = row.cells[j];
+                    if (j === 0) {
+                        rowData.EmployeeName = cell.textContent;
+                    } else if (j === 1) {
+                        rowData.EmployeeCode = cell.textContent;
+                    } else if (j === 2) {
+                        rowData.BranchName = cell.textContent;
+                    } else {
+                        rowData[`day-${j - 2}`] = cell.textContent;
+                        rowData[`day-${j - 2}bg`] = cell.style.backgroundColor;
+                        rowData[`day-${j - 2}day`] = headers[j];
+
+                    }
+                }
+                data.push(rowData);
+            }
+            return data;
+        }
+
+        function displayData(data)
+        {
+            debugger;
+            // const month = document.getElementById("monthSelect").value;
+            // const year = document.getElementById("yearSelect").value;
+            // const daysInMonth = new Date(year, month, 0).getDate();
+
+            const tbody = document.querySelector("#myTable tbody");
+            $('#myTable tbody').empty();
+            data.forEach(item => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td class="px-2 py-1 whitespace-nowrap border-r border-gray-100">${item.EmployeeName}</td>
+                    <td class="px-2 py-1 whitespace-nowrap border-r border-gray-100">${item.EmployeeId}</td>
+                    <td class="px-2 py-1 whitespace-nowrap border-r border-gray-100">${item.BranchName}</td>
+                `;
+
+                let i=0;
+                let mon=0;
+                // const startDate = new Date(year, month - 2, @ViewBag.startMonth);
+                // const endDate = new Date(year, month-1, @ViewBag.startMonth-1);
+                const fromdate = new Date(document.getElementById("fromDate").value);
+                const todate = new Date(document.getElementById("toDate").value);
+                // for (let date = startDate; date <= endDate; date.setDate(date.getDate() + 1)) {
+                for (let date = new Date(fromdate); date <= todate; date.setDate(date.getDate() + 1)) {
+                    i=String(date.getDate()).padStart(2, '0');
+                    i=parseInt(i)+1;
+                    mon= String(date.getMonth() + 1).padStart(2, '0')
+                    mon=parseInt(mon);
+                    const cell = document.createElement("td");
+                    cell.className = "px-2 py-1 whitespace-nowrap border-r border-gray-100";
+                    cell.textContent =item[`day-${i-1}-${mon}-in`] + '-' + item[`day-${i-1}-${mon}-out`]; // Adjust according to your data structure
+                    //change cell color
+                    if(item[`day-${i-1}-${mon}-ph`]=="Sunday")
+                    {
+                        cell.style.backgroundColor = "#0dcaf0";
+                        cell.textContent="Sunday";
+                    }
+                    if(item[`day-${i-1}-ph`]=="Weekly Off")
+                    {
+                        cell.style.backgroundColor = "#0dcaf0";
+                        cell.textContent="Weak-Off";
+                    }
+                    else if(item[`remarks-${i-1}-${mon}`]=="Late In/Early Out")
+                        cell.style.backgroundColor = "#E58110";
+                    else if(item[`remarks-${i-1}-${mon}`]=="Late In")
+                        cell.style.backgroundColor = "#F19E9E";
+                    else if(item[`remarks-${i-1}-${mon}`]=="Early Out")
+                        cell.style.backgroundColor = "#9D5050";
+                    else if(item[`remarks-${i-1}-${mon}`]=="Ontime")
+                        cell.style.backgroundColor = "#155724";//ontime
+                    else if(item[`remarks-${i-1}-${mon}`]=="")
+                    {
+                        
+                            cell.style.backgroundColor = "#f8d7da";//Absent
+                            cell.style.color = "#721c24";
+                            cell.textContent='Absent';
+
+                    }
+
+                    if (item[`remarks-${i-1}-${mon}`]?.includes("Leave")) {
+                        // Leave Type Not Specified then;//
+                        cell.style.backgroundColor = "#28a745";//Earned Leave
+                        cell.textContent='Leave';
+                    }
+                    if(item[`remarks-${i-1}-${mon}`]=="LeaveCL")
+                    {
+                       //casual Leave
+                        cell.textContent='Leave-CL';
+                    }
+                    if(item[`remarks-${i-1}-${mon}`]=="LeaveEL")
+                    {
+                        //Earned Leave
+                        cell.textContent='Leave-EL';
+                    }
+
+
+                    cell.style.color = "white";
+                    row.appendChild(cell);
+                }
+                tbody.appendChild(row);
+            });
+
+
+        }
+
+        function displayDataDay1(data)
+        {
+             debugger;
+            const month = document.getElementById("monthSelect").value;
+            const year = document.getElementById("yearSelect").value;
+            const daysInMonth = new Date(year, month, 0).getDate();
+
+            const tbody = document.querySelector("#myTable tbody");
+            $('#myTable tbody').empty();
+            data.forEach(item => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td class="px-2 py-1 whitespace-nowrap border-r border-gray-100">${item.EmployeeName}</td>
+                    <td class="px-2 py-1 whitespace-nowrap border-r border-gray-100">${item.EmployeeId}</td>
+                    <td class="px-2 py-1 whitespace-nowrap border-r border-gray-100">${item.BranchName}</td>
+                `;
+                // Add dynamic date cells
+                for (let i =2; i <= daysInMonth+1; i++) {
+                    const cell = document.createElement("td");
+                    cell.className = "px-2 py-1 whitespace-nowrap border-r border-gray-100";
+                    cell.textContent =item[`day-${i-1}-in`] + '-' + item[`day-${i-1}-out`]; // Adjust according to your data structure
+                    //change cell color
+                    if(item[`day-${i-1}-ph`]=="Sunday")
+                    {
+                        cell.style.backgroundColor = "#0dcaf0";
+                        cell.textContent="Sunday";
+                    }
+                    if(item[`day-${i-1}-ph`]=="Weekly Off")
+                    {
+                        cell.style.backgroundColor = "#0dcaf0";
+                        cell.textContent="Weak-Off";
+                    }
+                    else if(item[`remarks-${i-1}`]=="Late In/Early Out")
+                        cell.style.backgroundColor = "#E58110";
+                    else if(item[`remarks-${i-1}`]=="Late In")
+                        cell.style.backgroundColor = "#F19E9E";
+                    else if(item[`remarks-${i-1}`]=="Early Out")
+                        cell.style.backgroundColor = "#9D5050";
+                    else if(item[`remarks-${i-1}`]=="")
+                    {
+                        if(cell.textContent=='-')
+                        {
+                            cell.style.backgroundColor = "#f8d7da";//Absent
+                            cell.style.color = "#721c24";
+                            cell.textContent='Absent';
+                        }
+                        else
+                            cell.style.backgroundColor = "#155724";//ontime
+
+                    }
+
+                    if (item[`remarks-${i-1}`]?.includes("Leave")) {
+                        // Leave Type Not Specified then;//
+                        cell.style.backgroundColor = "#28a745";//Earned Leave
+                        cell.textContent='Leave';
+                    }
+                    if(item[`remarks-${i-1}`]=="LeaveCL")
+                    {
+                       //casual Leave
+                        cell.textContent='Leave-CL';
+                    }
+                    if(item[`remarks-${i-1}`]=="LeaveEL")
+                    {
+                        //Earned Leave
+                        cell.textContent='Leave-EL';
+                    }
+
+
+                    cell.style.color = "white";
+                    row.appendChild(cell);
+                }
+                tbody.appendChild(row);
+            });
+
+
+
+        }
+
+   
+    //generate dynamic table based on month year selection day start from 26 of previous month to 25 th of given month
+    function generateTableHeader() {
+        debugger;
+        const fromdate = new Date(document.getElementById("fromDate").value);
+        const todate = new Date(document.getElementById("toDate").value);
+
+        const headerRow = document.getElementById("tableHeader").rows[0];
+        // Clear existing day columns
+        while (headerRow.cells.length > 3) {
+            headerRow.deleteCell(-1);
+        }
+
+        // Loop through dates
+        for (let d = new Date(fromdate); d <= todate; d.setDate(d.getDate() + 1)) {
+            const th = document.createElement("th");
+
+            const day = String(d.getDate()).padStart(2, '0');        // Day
+            const month = String(d.getMonth() + 1).padStart(2, '0'); // Month
+
+            th.textContent = `${day}-${month}`;
+            headerRow.appendChild(th);
+        }
+     }
+
+
+    $('#myTable').on('click', 'td', function(e) {
+        debugger;
+      const bgColor = $(this).css('background-color');
+      var tooltipText = "";
+      if (bgColor === 'rgb(209, 236, 241)') { // red background
+        tooltipText = "Sunday";
+      }
+      else  if (bgColor === 'rgb(241, 158, 158)') { // red background
+        tooltipText = "Late In";
+      }
+      else  if (bgColor === 'rgb(229, 129, 16)') { // red background
+        tooltipText = "Late In/Early Out";
+      }
+      else  if (bgColor === 'rgb(157, 80, 80)') { // red background
+        tooltipText = "Early Out";
+      }
+      else  if (bgColor === 'rgb(234, 5, 5)') { // red background
+        tooltipText = "Absent";
+      }
+      else  if (bgColor === 'rgb(21, 87, 36)') { // red background
+        tooltipText = "OnTime";
+      }
+
+      else {
+        $('#tooltip').hide();
+      }
+
+      if (tooltipText) {
+          $('#tooltip')
+            .text(tooltipText)
+            .css({
+              top:  e.pageY + 10 + 'px',
+              left: e.pageX + 10 + 'px'
+            })
+            .show();
+        }
+
+    });
+
+    $('#myTable').on('mouseleave', 'td', function () {
+      $('#tooltip').hide();
+    });
+
+    function toggleAllocationView() {
+        const isEmployeeWise = document.querySelector('input[name="ReportType"]:checked').value === "EmployeeWise";
+        document.getElementById("employeeDropdown").style.display = isEmployeeWise ? "block" : "none";
+        document.getElementById("branchDropdown").style.display = isEmployeeWise ? "none" : "block";
+    }
+
+
+</script>
+<script>
+    // Parse the Razor-passed employees into JavaScript
+    const employees = @Html.Raw(employeesJson);
+    const select = document.getElementById("employee");
+
+    let showCodeOnly = false;
+
+    function renderOptions() {
+        const selectedValue = select.value;
+        select.innerHTML = "";
+
+
+        const option = document.createElement("option");
+            option.value = 0;
+            option.text = "Select Employee";
+            select.appendChild(option);
+
+        employees.forEach(emp => {
+            const option = document.createElement("option");
+            option.value = emp.iMasterid;
+            option.text = showCodeOnly ? emp.sEmployeeCode : emp.sEmployeeName;
+            select.appendChild(option);
+        });
+
+        // select.value = selectedValue
+        select.value = "Select Employee";
+    }
+
+    renderOptions();
+
+    document.addEventListener("keydown", function (e) {
+        // if (e.altKey && e.key === "F2") {
+        if (e.key === "F2") {
+            showCodeOnly = !showCodeOnly;
+            renderOptions();
+        }
+    });
+</script>
+
+
+<script>
+    // document.getElementById("printReport").addEventListener("click", function () {
+    //     window.print();
+    // });
+</script>

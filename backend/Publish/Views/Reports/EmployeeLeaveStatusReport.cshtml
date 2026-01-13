@@ -1,0 +1,158 @@
+﻿@model List< EMSSolution.Models.LeaveStatusReport>
+@using Microsoft.AspNetCore.Http
+@{
+    ViewBag.Title = "Employee Leave Status Report";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var employeeid = Context.Session.GetString("EmployeeId");
+}
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="~/css/Style.css">
+    <style>
+
+        .status-approved {
+            background-color: #16cc41 !important; /* Light green */
+        }
+
+        .status-pending {
+            background-color: #ffe935 !important; /* Light yellow */
+        }
+
+        .status-rejected {
+            background-color: #f7061c !important; /* Light red */
+        }
+
+    </style>
+
+</head>
+
+<body>
+    <div class="container">
+        <h2>Employee Leave Status Report</h2>
+        <div class="form-group">
+            <label>Select Employee:</label>
+            <select id="employee" name="employee" class="form-control">
+                <option value="0">-- Select --</option>
+                @foreach (var emp in ViewBag.Employees)
+                {
+                    <option value="@emp.iMasterid">@emp.sEmployeeName</option>
+                }
+            </select>
+        </div>
+        <button id="btnDisplay" class="btn btn-primary mt-2">Display</button>
+
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+            <input type="text" id="searchBox" class="col-4 display: flex margin-right" placeholder="Search..." onkeyup="searchTable()" />
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-striped table-hover w-auto" id="myTable">
+                <thead>
+                    <tr>
+                        <th>SNo</th>
+                        <th >Employee Name</th>
+                        <th >Employee Code</th>
+                        <th>Leave Date</th>
+                        <th >Leave Type</th>
+                        <th >Reason</th>
+                        <th >Approval Authority</th>
+                        <th >Status</th>
+                        <th >Approved/Rejected By</th>
+                        <th >Approved/Rejected Reason</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+<script>
+    $(document).ready(function () {
+        debugger;
+        $('#employee').select2({
+            placeholder: "Select employee",
+            allowClear: true
+        });
+        var count = $('#employee option').length;
+        if(count==2)
+        {
+             $("#employee").val(@employeeid).trigger('change'); //select default employee
+        }
+        else
+        {
+            
+            focusonselectcontrol("#employee");
+            $("#employee").focus();
+        }
+    });
+    $('#btnDisplay').click(function () {
+        debugger;
+        var employeeId = $('#employee').val();
+        // if (employeeId == "0") {
+        //     alert("Please select an employee.");
+        //     return;
+        // }
+        $.ajax({
+            url: '@Url.Action("GetLeaveStatusReport", "LeaveStatusReport")',
+            type: 'POST',
+            data: { empId: employeeId },
+            success: function (response) {
+                debugger;
+                var tbody = $('#myTable tbody');
+                tbody.empty();
+                if(response.success == false) {
+                    alert(response.message);
+                    return;
+                }
+                if (response.data.length > 0) {
+
+                    $.each(response.data, function (index, item) {
+                        let statusClass = "";
+
+                        switch (item.status?.toLowerCase()) {
+                            case "approved":
+                                statusClass = "status-approved";
+                                break;
+                            case "pending":
+                                statusClass = "status-pending";
+                                break;
+                            case "rejected":
+                                statusClass = "status-rejected";
+                                break;
+                        }
+                        tbody.append(`
+
+                            <tr >
+                                <td>${index + 1}</td>
+                                <td style="width:auto">${item.employeeName}</td>
+                                <td style="width:auto">${item.employeeCode}</td>
+                                <td style="width:auto">${item.leaveDate}</td>
+                                <td style="width:auto">${item.leaveType}</td>
+                                <td style="width:auto;font-size:11px">${item.reason}</td>
+                                <td style="width:auto">${item.approvalAuthority}</td>
+                                <td style="width:auto" class="${statusClass}">${item.status}</td>
+                                <td style="width:auto">${item.approvedRejectedBy}</td>
+                                <td style="width:auto;font-size:8px">${item.appRejReason}</td>
+
+                            </tr>
+                        `);
+
+                    });
+
+                } else {
+                    tbody.append('<tr><td colspan="8">No records found.</td></tr>');
+
+                }
+            },
+            error: function () {
+                alert("Error retrieving data.");
+            }
+        });
+    });
+
+</script>

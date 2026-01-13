@@ -1,0 +1,296 @@
+﻿@model List<EMSSolution.Models.Department>
+
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title</title>
+  
+    <link rel="stylesheet" href="~/css/Style.css">
+    <style>
+        .flex {
+            display: flex;
+            gap: 16px;
+        }
+
+        body {
+            background-color: #cccccc;
+        }
+
+        input:invalid {
+            border: 2px solid red;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container" >
+        <h2 class="text-center" >
+            Department
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="40" height="30">
+                <!-- Building Structure -->
+                <rect x="10" y="20" width="40" height="30" fill="#4CAF50" stroke="#388E3C" stroke-width="2" />
+
+                <!-- Windows -->
+                <rect x="14" y="24" width="8" height="8" fill="#ffffff" stroke="#388E3C" stroke-width="1" />
+                <rect x="14" y="34" width="8" height="8" fill="#ffffff" stroke="#388E3C" stroke-width="1" />
+
+                <rect x="22" y="24" width="8" height="8" fill="#ffffff" stroke="#388E3C" stroke-width="1" />
+                <rect x="22" y="34" width="8" height="8" fill="#ffffff" stroke="#388E3C" stroke-width="1" />
+
+                <rect x="30" y="24" width="8" height="8" fill="#ffffff" stroke="#388E3C" stroke-width="1" />
+                <rect x="30" y="34" width="8" height="8" fill="#ffffff" stroke="#388E3C" stroke-width="1" />
+
+                <rect x="38" y="24" width="8" height="8" fill="#ffffff" stroke="#388E3C" stroke-width="1" />
+                <rect x="38" y="34" width="8" height="8" fill="#ffffff" stroke="#388E3C" stroke-width="1" />
+
+                <!-- Roof -->
+                <polygon points="10,20 54,20 32,8" fill="#1976D2" />
+            </svg>
+        </h2>
+
+
+        <div asp-validation-summary="All" class="text-bg-danger"></div>
+        <div class="form-group mb-3">
+
+            <label for="lName" class="form-label">Name <span style="color: red;">*</span> </label>
+            <input type="text" name="name" id="name" class="form-control" required
+                   placeholder="Enter Name [Mandatory]" />
+
+        </div>
+        <div class="form-group mb-3">
+
+            <label for="lCode" class="form-label">Code <span style="color: red;">*</span> </label>
+            <input type="text" name="code" id="code" class="form-control" required
+                   placeholder="Enter Code [Mandatory]" />
+
+        </div>
+        <div class="form-group mb-3">
+            <label for="machineid" class="form-label">Description</label>
+            <input type="text" name="description" id="description" class="form-control" placeholder="Enter Description" />
+        </div>
+
+        <div class="flex">
+            <button id="btnsummit" type="submit" class="btn btn-outline-primary" style="width:120px">Save</button>
+            <button id="btnrefresh" type="button" class="btn btn-outline-primary" style="width:120px">Refresh</button>
+            <button id="btnDelete" type="button" class="btn btn-outline-primary" style="width:120px">Delete</button>
+
+        </div>
+
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+        <input type="text" id="searchBox" class="col-4 display: flex margin-right" placeholder="Search..." onkeyup="searchTable()" />
+    </div>
+
+    <div class="table-responsive mt-4">
+        <table id="myTable" class="table table-hover table-bordered">
+            <thead>
+                <tr>
+                    <th> Sno</th>
+                    <th> Name</th>
+                    <th> Code</th>
+                    <th> Description</th>
+                    <th hidden> Masterid</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    var intRow = 1;
+                    if (Model != null)
+                    {
+                        foreach (var entry in Model)
+                        {
+
+                            <tr>
+                                <td>@intRow</td>
+                                <td>@entry.sName</td>
+                                <td>@entry.sCode</td>
+                                <td>@entry.sDescription</td>
+                                <td hidden>@entry.iMasterid</td>
+                            </tr>
+                            intRow = intRow + 1;
+                        }
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="~/js/GenericFunction.js"></script>
+<script>
+
+    $(document).ready(function () {
+        debugger;
+        var iRowNo = 0;
+        var currentRow;
+        var masterid=0;
+        clearControl();
+    });
+
+    $('#btnrefresh').click(function (e) {
+        debugger;
+        clearControl();
+    });
+    $('#btnsummit').click(function (e) {
+        debugger;
+        let name =document.getElementById('name');
+        name.value= name.value.trim();
+        let code=document.getElementById('code');
+        code.value= code.value.trim();
+        name.setCustomValidity('');
+        code.setCustomValidity('');
+        if (!name.checkValidity()) {
+            name.setCustomValidity('Please enter a Department Name');
+            name.reportValidity();
+            return;
+        }
+        if (!code.checkValidity()) {
+            code.setCustomValidity('Please enter a Department Code');
+            code.reportValidity();
+            return;
+        }
+
+
+        $('#loader').show();
+        // if ($('#name').val().trim() == '') {
+        //     name.setCustomValidity('Please enter the Department Name');
+        //     name.reportValidity();
+        //     $('#loader').hide();
+        //     $("#name").focus();
+        //     return;
+        // }
+        // if ($('#code').val().trim() == '') {
+        //     name.setCustomValidity('Please enter the Department Code');
+        //     name.reportValidity();
+        //     $('#loader').hide();
+        //     $("#code").focus();
+        //     return;
+        // }
+
+        var Name = $('#name').val();
+        var Code = $('#code').val();
+        var Description = $('#description').val();
+        var Masterid = masterid;
+        debugger;
+        var requestdata=JSON.stringify({iMasterid: Masterid, sName: Name, sCode: Code, sDescription: Description});
+
+        $.ajax
+            ({
+                url: '@Url.Action("SaveDepartment", "Department")',
+                datatype: 'JSON',
+                type: "post",
+                contentType: "application/json; charset=utf-8",
+                cashe: true,
+                data: requestdata,
+                success: function (response) {
+                    debugger;
+
+                    if (response.status == true) {
+                        updateTable(response.data, response.isNew)
+                        clearControl();
+                        alert(response.message);
+                        $('#loader').hide();
+                    }
+                    else {
+                        $('#loader').hide();
+                        alert(response.message);
+                    }
+                },
+                error: function (e) {
+                    $('#loader').hide();
+                    debugger;
+                }
+            })
+    });
+
+    $('#btnDelete').click(function (e) {
+        debugger;
+         $('#loader').show();
+        if (masterid == 0) {
+            alert('Select a record to delete');
+            return;
+        }
+        if (confirm("Are you sure you want to delete this record?")) {
+            $.ajax
+                ({
+                    url: '@Url.Action("DeleteDepartment", "Department")',
+                    datatype: 'JSON',
+                    type: "post",
+                    cashe: true,
+                    data: { iMasterId: masterid },
+                    success: function (response) {
+                        debugger;
+                        if (response.status == true) {
+                            alert(response.message);
+                            $('#loader').hide();
+                            clearControl();
+                            location.reload(true);
+                        }
+                        else {
+                            $('#loader').hide();
+                            alert(response.message);
+                        }
+                    },
+                    error: function (e) {
+                        $('#loader').hide();
+                        debugger;
+                    }
+                })
+            }
+    });
+
+    $('body').on('click', 'tr', function () {
+        debugger;
+        var name = $(this).find("td").eq(1).html();
+        var code= $(this).find("td").eq(2).html();
+        var description = $(this).find("td").eq(3).html();
+
+        masterid = $(this).find("td").eq(4).html();
+
+        $('#name').val(name);
+        $('#code').val(code);
+        $('#description').val(description);
+
+        iRowNo = $(this).closest("tr")[0].rowIndex;
+        currentRow = $(this).closest("tr");
+
+    });
+    function clearControl() {
+        $('#name').val('');
+        $('#code').val('');
+        $('#description').val('');
+        $("#name").focus();
+        masterid = 0;
+    }
+    function updateTable(res, isNew) {
+        debugger;
+        if (isNew == 1) {
+            var rowCount = $('#myTable tr').length;
+            for (let i = 0; i < res.length; i++) {
+
+                $('#myTable').append('<tr>' +
+                    '<td>' + (rowCount) + '</td>' +
+                    '<td >' + res[i].sName + '</td > ' +
+                    '<td >' + res[i].sCode + '</td > ' +
+                    '<td >' + res[i].sDescription + '</td > ' +
+                    '<td style="display:none;">' + res[i].iMasterid + '</td > ' +
+                    '</tr>');
+            }
+        }
+        else {
+
+            $("#myTable").val(currentRow.find("td:eq(1)").text(res[0].sName));
+            $("#myTable").val(currentRow.find("td:eq(2)").text(res[0].sCode));
+            $("#myTable").val(currentRow.find("td:eq(3)").text(res[0].sDescription));
+            $("#myTable").val(currentRow.find("td:eq(4)").text(res[0].iMasterid));
+        }
+    }
+</script>

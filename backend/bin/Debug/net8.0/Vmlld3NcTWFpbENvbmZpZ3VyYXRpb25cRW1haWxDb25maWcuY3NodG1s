@@ -1,0 +1,182 @@
+﻿@model EMSSolution.Models.EmailConfigurationModel;
+@{
+    ViewBag.Title = "Email Configuration";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/Style.css">
+</head>
+<body>
+    <div class="container">
+        <h4 class="text-center d-flex justify-content-center align-items-center gap-2">
+            Email Configuration
+            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 48 48">
+                <!-- Gmail-style envelope -->
+                <path fill="#EA4335" d="M4 12v24c0 2.21 1.79 4 4 4h8V24L4 12z" />
+                <path fill="#34A853" d="M44 12v24c0 2.21-1.79 4-4 4h-8V24L44 12z" />
+                <path fill="#FBBC05" d="M36 40H12c-2.21 0-4-1.79-4-4V18l16 12 16-12v18c0 2.21-1.79 4-4 4z" />
+                <path fill="#4285F4" d="M44 12L24 28 4 12h40z" />
+
+                <!-- Gear icon (bottom right corner) -->
+                <g transform="translate(32, 32) scale(0.6)">
+                    <circle cx="8" cy="8" r="6" fill="none" stroke="#6c757d" stroke-width="2" />
+                    <path d="M8 2v2M8 12v2M2 8h2M12 8h2M3.76 3.76l1.42 1.42M10.82 10.82l1.42 1.42M3.76 12.24l1.42-1.42M10.82 5.18l1.42-1.42"
+                          stroke="#6c757d" stroke-width="1.5" stroke-linecap="round" />
+                </g>
+            </svg>
+
+        </h4>
+        
+        <div class="form-group">
+            <label><strong>Email Provider</strong></label><br />
+            <label>
+                <input type="radio" name="emailType" value="smtp" checked /> SMTP
+            </label>
+           @*  &nbsp;&nbsp;
+            <label>
+                <input type="radio" name="emailType" value="outlook" /> Outlook
+            </label> *@
+        </div>
+
+        <!-- SMTP Configuration -->
+        <div id="smtpConfig">
+            <h4>SMTP Settings</h4>
+            <div class="form-group">
+                <label>SMTP Host <span style="color: red;">*</span></label>
+                <input type="text" class="form-control" id="smtpHost" value="@Model?.SmtpHost" />
+            </div>
+            <div class="form-group">
+                <label>SMTP Port <span style="color: red;">*</span></label>
+                <input type="number" class="form-control" id="smtpPort" value="@Model?.SmtpPort" />
+            </div>
+            <div class="form-group">
+                <label>Username <span style="color: red;">*</span></label>
+                <input type="text" class="form-control" id="smtpUsername" value="@Model?.SmtpUsername" />
+            </div>
+            <div class="form-group">
+                <label>Password <span style="color: red;">*</span></label>
+                <input type="password" class="form-control" id="smtpPassword" value="@Model?.SmtpPassword" />
+            </div>
+            <div class="form-group">
+                <label>Enable SSL</label>
+                <input type="checkbox" id="smtpSsl" value="@Model?.SmtpSsl" />
+            </div>
+        </div>
+
+        <!-- Outlook Configuration -->
+        <div id="outlookConfig" style="display: none;">
+            <h4>Outlook Settings</h4>
+            <div class="form-group">
+                <label>Outlook Mail ID <span style="color: red;">*</span></label>
+                <input type="text" class="form-control" id="outlookMailId" value="@Model?.outlookEmail" />
+            </div>
+            <div class="form-group">
+                <label>OutLook Password <span style="color: red;">*</span></label>
+                <input type="text" class="form-control" id="outlookPassword" value="@Model?.outlookPassword" />
+            </div>
+            
+            @*<div class="form-group">
+                <label>Client Secret</label>
+                <input type="text" class="form-control" id="outlookClientSecret" value="@Model.OutlookClientSecret" />
+            </div>
+            <div class="form-group">
+                <label>Sender Email</label>
+                <input type="email" class="form-control" id="outlookSenderEmail" value="@Model.OutlookSenderEmail" />
+            </div> *@
+
+        </div>
+        <br />
+        <button class="btn btn-primary" id="saveBtn">Save Configuration</button>
+    </div>
+</body>
+</html>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('input[name="emailType"]').change(function () {
+                const selected = $('input[name="emailType"]:checked').val();
+                if (selected === 'smtp') {
+                    $('#smtpConfig').show();
+                    $('#outlookConfig').hide();
+                } else {
+                    $('#smtpConfig').hide();
+                    $('#outlookConfig').show();
+                }
+            });
+
+            $('#saveBtn').click(function () {
+                debugger;
+                const selected = $('input[name="emailType"]:checked').val();
+                if (selected === 'smtp') {
+                    // Collect SMTP data
+                    const smtpData = {
+                        smtpHost: $('#smtpHost').val(),
+                        smtpPort: $('#smtpPort').val(),
+                        smtpUsername: $('#smtpUsername').val(),
+                        smtpPassword: $('#smtpPassword').val(),
+                        smtpSsl: $('#smtpSsl').is(':checked')
+                    };
+
+
+                $.ajax
+                    ({
+                        url: '@Url.Action("SaveSMTP", "MailConfiguration")',
+                        datatype: 'json',
+                        type: "post",
+                        
+                        cashe: true,
+                        data: smtpData,
+                        success: function (response) {
+                            debugger;
+
+                            if (response.status == true) {
+                                alert(response.message);
+                            }
+                            else {
+                                $('#loader').hide();
+                                alert(response.message);
+                            }
+                        },
+                        error: function (e) {
+                            $('#loader').hide();
+                            debugger;
+                        }
+                    })
+
+                    console.log("Saving SMTP config:", smtpData);
+                } else {
+                    // Collect Outlook data
+                    const outlookData = {
+                        outlookEmail: $('#outlookMailId').val(),
+                        outlookPassword: $('#outlookPassword').val()
+                    };
+
+                    $.ajax({
+                        url: '@Url.Action("SaveOutlook", "MailConfiguration")',
+                        datatype: 'json',
+                        type: "post",
+                       
+                        cashe: true,
+                        data: outlookData,
+                        success: function (response) {
+                            if (response.status == true) {
+                                alert(response.message);
+                            } else {
+                                alert(response.message);
+                            }
+                        },
+                        error: function (e) {
+                            console.error("Error saving Outlook config:", e);
+                        }
+                    });
+                    console.log("Saving Outlook config:", outlookData);
+                }
+            });
+        });
+    </script>
+}

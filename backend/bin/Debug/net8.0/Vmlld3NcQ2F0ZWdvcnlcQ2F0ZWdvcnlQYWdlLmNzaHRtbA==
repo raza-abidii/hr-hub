@@ -1,0 +1,266 @@
+﻿@model List<EMSSolution.Models.Category>
+
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title</title>
+
+    <link rel="stylesheet" href="~/css/Style.css">
+    <style>
+        .flex {
+            display: flex;
+            gap: 16px;
+        }
+
+        input:invalid {
+            border: 2px solid red;
+        }
+
+    </style>
+</head>
+
+<body>
+        
+    <div class="container">
+        <h4 class="text-center d-flex justify-content-center align-items-center gap-2">
+            Category
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="3" width="7" height="7" rx="1.5" fill="#000" />
+                <rect x="14" y="3" width="7" height="7" rx="1.5" fill="#000" />
+                <rect x="3" y="14" width="7" height="7" rx="1.5" fill="#000" />
+                <rect x="14" y="14" width="7" height="7" rx="1.5" fill="#000" />
+            </svg>
+        </h4>
+        <div asp-validation-summary="All" class="text-bg-danger"></div>
+        <div class="form-group mb-3">
+            <label for="lName" class="form-label">Name <span style="color: red;">*</span> </label>
+            <input type="text" name="name" id="name" class="form-control" required
+                   placeholder="Enter Name [Mandatory]" />
+        </div>
+        <div class="form-group mb-3">
+            <label for="lCode" class="form-label">Code <span style="color: red;">*</span> </label>
+            <input type="text" name="code" id="code" class="form-control" required
+                   placeholder="Enter Code [Mandatory]" />
+        </div>
+        <div class="form-group mb-3">
+            <label for="machineid" class="form-label">Description</label>
+            <input type="text" name="description" id="description" class="form-control" placeholder="Enter Description" />
+        </div>
+
+        <div class="flex">
+            <button id="btnsummit" type="submit" class="btn btn-outline-primary" style="width:120px" accesskey="s">Save</button>
+            <button id="btnrefresh" type="button" class="btn btn-outline-primary" style="width:120px" accesskey="r">Refresh</button>
+            <button id="btnDelete" type="button" class="btn btn-outline-primary" style="width:120px" accesskey="d">Delete</button>
+        </div>
+
+    </div>
+
+    <div class="container">
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+            <input type="text" id="searchBox" class="col-4 display: flex margin-right" placeholder="Search..." onkeyup="searchTable()" />
+        </div>
+
+        <div class="table-responsive">
+            <table id="myTable" class="table table-hover table-bordered">
+                <thead>
+                    <tr>
+                        <th> Sno</th>
+                        <th> Name</th>
+                        <th> Code</th>
+                        <th> Description</th>
+                        <th hidden> Masterid</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var intRow = 1;
+                        foreach (var entry in Model)
+                        {
+                            <tr>
+                                <td>@intRow</td>
+                                <td>@entry.sName</td>
+                                <td>@entry.sCode</td>
+                                <td>@entry.sDescription</td>
+                                <td hidden>@entry.iMasterid</td>
+                            </tr>
+                            intRow = intRow + 1;
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
+
+<script src="/js/GenericFunction.js"></script>
+<script>
+
+    $(document).ready(function () {
+        debugger;
+        var iRowNo = 0;
+        var currentRow;``
+        var masterid = 0;
+        clearControl();
+    });
+
+    $('#btnrefresh').click(function (e) {
+        debugger;
+        clearControl();
+    });
+    $('#btnDelete').click(function (e) {
+        debugger;
+        $('#loader').show();
+        if (masterid == 0) {
+            alert('Select Row to Delete');
+            $('#loader').hide();
+            return;
+        }
+        if (confirm("Are you sure you want to delete this record?")) {
+            $.ajax
+                ({
+                    url: '@Url.Action("DeleteCategory", "Category")',
+                    datatype: 'JSON',
+                    type: "post",
+                    cashe: true,
+                    data: { iMasterId: masterid },
+                    success: function (response) {
+                        debugger;
+                        if (response.status == true) {
+                            alert(response.message);
+                            $('#loader').hide();
+                            clearControl();
+                            location.reload(true);
+                        }
+                        else {
+                            $('#loader').hide();
+                            alert(response.message);
+                        }
+                    },
+                    error: function (e) {
+                        $('#loader').hide();
+                        debugger;
+                    }
+                })
+            }
+    });
+
+    $('#btnsummit').click(function (e) {
+    //$('#categoryForm').on('submit', function (e) {
+        debugger;
+        let name =document.getElementById('name');
+        name.value=name.value.trim();
+        let code=document.getElementById('code');
+        code.value=code.value.trim();
+        name.setCustomValidity('');
+        code.setCustomValidity('');
+        if (!name.checkValidity()) {
+            name.setCustomValidity('Please enter a Category name');
+            name.reportValidity();
+            return;
+        }
+        if (!code.checkValidity()) {
+            code.setCustomValidity('Please enter a Category code');
+            code.reportValidity();
+            return;
+        }
+
+
+        $('#loader').show();
+
+        var Name = $('#name').val();
+        var Code = $('#code').val();
+        var Description = $('#description').val();
+        var Masterid = masterid;//$('#masterid').val();
+
+        var requestdata=JSON.stringify({iMasterid: Masterid, sName: Name, sCode: Code, sDescription: Description});
+        $.ajax
+            ({
+                url: '@Url.Action("SaveCategory", "Category")',
+                datatype: 'json',
+                type: "post",
+                contentType: "application/json; charset=utf-8",
+                cashe: true,
+                data: requestdata,
+                success: function (response) {
+                    debugger;
+
+                    if (response.status == true) {
+                        updateTable(response.data, response.isNew)
+                        clearControl();
+                        alert(response.message);
+                        $('#loader').hide();
+                    }
+                    else {
+                        $('#loader').hide();
+                        alert(response.message);
+                    }
+                },
+                error: function (e) {
+                    $('#loader').hide();
+                    debugger;
+                }
+            })
+
+    });
+
+    $('body').on('click', 'tr', function () {
+        debugger;
+        var name = $(this).find("td").eq(1).html();
+        var code= $(this).find("td").eq(2).html();
+        var description = $(this).find("td").eq(3).html();
+
+        masterid = $(this).find("td").eq(4).html();
+
+
+        $('#name').val(name);
+        $('#code').val(code);
+        $('#description').val(description);
+        //$('#masterid').val(masterid);
+
+        iRowNo = $(this).closest("tr")[0].rowIndex;
+        currentRow = $(this).closest("tr");
+
+        //will set the page to top
+        $('html, body').animate({ scrollTop: 0 }, 'fast');
+    });
+    function clearControl() {
+        $('#name').val('');
+        $('#code').val('');
+        $('#description').val('');
+        //$('#masterid').val('');
+        masterid = 0;
+        $("#name").focus();
+    }
+    function updateTable(res, isNew) {
+        debugger;
+        if (isNew == 1) {
+            //get table total rows
+            var rowCount = $('#myTable tr').length;
+
+            //$('#myTable tbody').empty()
+            for (let i = 0; i < res.length; i++)
+            {
+                $('#myTable').append('<tr>' +
+                    '<td>' + (rowCount) + '</td>' +
+                    '<td >' + res[i].sName + '</td > ' +
+                    '<td >' + res[i].sCode + '</td > ' +
+                    '<td >' + res[i].sDescription + '</td > ' +
+                    '<td style="display:none;">' + res[i].iMasterid + '</td > ' +
+                    '</tr>');
+            }
+        }
+        else {
+
+            $("#myTable").val(currentRow.find("td:eq(1)").text(res[0].sName));
+            $("#myTable").val(currentRow.find("td:eq(2)").text(res[0].sCode));
+            $("#myTable").val(currentRow.find("td:eq(3)").text(res[0].sDescription));
+            $("#myTable").val(currentRow.find("td:eq(4)").text(res[0].iMasterid));
+
+        }
+    }
+</script>

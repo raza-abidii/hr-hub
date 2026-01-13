@@ -1,0 +1,38 @@
+﻿/* theme-blue.css */
+
+body {
+    background-color: #e6f0ff;
+    color: #0d1b2a;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.navbar, .header, .footer {
+    background-color: #003f88;
+    color: #ffffff;
+}
+
+.card, .form-control, .table {
+    background-color: #ffffff;
+    color: #0d1b2a;
+    border-color: #99c2ff;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: #ffffff;
+}
+
+a {
+    color: #0056b3;
+}
+
+    a:hover {
+        color: #003580;
+    }
+
+input, select, textarea {
+    background-color: #f0f8ff;
+    color: #0d1b2a;
+    border: 1px solid #80bdff;
+}

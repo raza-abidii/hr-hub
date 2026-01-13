@@ -1,0 +1,156 @@
+﻿@{
+    ViewData["Title"] = "Select Locations Manually & Find Shortest Route";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+    <link rel="stylesheet" href="~/css/Style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        #map {
+            height: 500px;
+            width: 100%;
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+
+        .info-box {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .distance-box {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            display: inline-block;
+        }
+    </style>
+
+</head>
+<body>
+    <div class="container">
+        <h2>Click Two Points to Get Shortest Route</h2>
+
+        <div class="info-box">
+            Start: <span id="start-coords">-</span><br />
+            End: <span id="end-coords">-</span>
+        </div>
+
+        <div class="distance-box" id="distance-info">Distance: -</div>
+
+        <div id="map"></div>
+    </div>
+    <!-- JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+
+    <script>
+        let map, startMarker, endMarker, routingControl;
+        let clickCount = 0;
+
+        function haversineDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) ** 2 +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) ** 2;
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const km = R * c;
+            return { km, miles: km * 0.621371 };
+        }
+
+        function updateRoute() {
+            if (startMarker && endMarker) {
+                const s = startMarker.getLatLng();
+                const e = endMarker.getLatLng();
+                const dist = haversineDistance(s.lat, s.lng, e.lat, e.lng);
+                document.getElementById("distance-info").innerText =
+                    `Straight Distance: ${dist.km.toFixed(2)} km (${dist.miles.toFixed(2)} miles)`;
+
+                if (routingControl) map.removeControl(routingControl);
+                routingControl = L.Routing.control({
+                    waypoints: [s, e],
+                    routeWhileDragging: false,
+                    geocoder: L.Control.Geocoder.nominatim()
+                }).addTo(map);
+            }
+        }
+
+        function initMap(lat, lng) {
+            map = L.map('map').setView([lat, lng], 5);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Click event to set locations
+            map.on('click', function (e) {
+                clickCount++;
+                if (clickCount === 1) {
+                    if (startMarker) map.removeLayer(startMarker);
+                    startMarker = L.marker(e.latlng, { draggable: true })
+                        .addTo(map)
+                        .bindPopup("Start Point")
+                        .openPopup();
+                    document.getElementById("start-coords").innerText =
+                        `${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`;
+                } else if (clickCount === 2) {
+                    if (endMarker) map.removeLayer(endMarker);
+                    endMarker = L.marker(e.latlng, {
+                        draggable: true,
+                        icon: L.icon({
+                            iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+                            iconSize: [25, 41],
+                            iconAnchor: [12, 41]
+                        })
+                    })
+                        .addTo(map)
+                        .bindPopup("End Point")
+                        .openPopup();
+                    document.getElementById("end-coords").innerText =
+                        `${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`;
+                    updateRoute();
+                } else {
+                    // Reset for new selection
+                    clickCount = 0;
+                    if (startMarker) map.removeLayer(startMarker);
+                    if (endMarker) map.removeLayer(endMarker);
+                    if (routingControl) map.removeControl(routingControl);
+                    document.getElementById("start-coords").innerText = "-";
+                    document.getElementById("end-coords").innerText = "-";
+                    document.getElementById("distance-info").innerText = "Distance: -";
+                }
+            });
+        }
+
+        window.onload = function () {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    pos => initMap(pos.coords.latitude, pos.coords.longitude),
+                    () => initMap(20.5937, 78.9629) // Default India
+                );
+            } else {
+                initMap(20.5937, 78.9629);
+            }
+        };
+    </script>
+</body>
+</html>

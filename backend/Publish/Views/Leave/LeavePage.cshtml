@@ -1,0 +1,322 @@
+﻿@model List<EMSSolution.Models.Leave>
+
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title</title>
+
+   @*  <link rel="stylesheet" type="text/css" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" /> *@
+    @*<meta name="viewport" content="width=device-width" />
+        <title>View</title>*@
+    <link rel="stylesheet" href="~/css/Style.css">
+    <style>
+        .flex {
+            display: flex;
+            gap: 16px;
+        }
+
+        body {
+            background-color: #cccccc;
+        }
+
+        input:invalid {
+            border: 2px solid red;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2 class="text-center" >Leave Definition
+            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none">
+                <!-- Document Shape -->
+                <path d="M6 3h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" fill="#E3F2FD" stroke="#2196F3" stroke-width="1.5" />
+                <path d="M14 3v5h5" stroke="#2196F3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+
+                <!-- Gear -->
+                <g transform="translate(12, 17)">
+                    <circle r="2" fill="#2196F3" />
+                    <path d="M0 -4 L0 -5 M0 4 L0 5 M-4 0 L-5 0 M4 0 L5 0 M-2.8 -2.8 L-3.5 -3.5 M2.8 -2.8 L3.5 -3.5 M-2.8 2.8 L-3.5 3.5 M2.8 2.8 L3.5 3.5"
+                          stroke="#2196F3" stroke-width="1.2" stroke-linecap="round" />
+                </g>
+            </svg>
+
+        </h2>
+        <div asp-validation-summary="All" class="text-bg-danger"></div>
+        <div class="form-group mb-3">
+
+            <label for="lCode" class="form-label">Leave Code <span style="color: red;">*</span> </label>
+            <input type="text" name="code" id="code" class="form-control" required
+                   placeholder="Enter Code [Mandatory]" />
+
+        </div>
+        <div class="form-group mb-3">
+
+            <label for="lType" class="form-label">Leave Type <span style="color: red;">*</span> </label>
+            <input type="text" name="type" id="type" class="form-control" required
+                   placeholder="Enter Leave Type [Mandatory]" />
+
+        </div>
+        <div class="form-group mb-3">
+            <label for="ai" class="form-label">isPaid</label>
+            <input type="checkbox" name="ispaid" id="ispaid" />
+        </div>
+        <div class="form-group mb-3">
+            <label for="machineid" class="form-label">No of Days</label>
+            <input type="number" name="noofdays" id="noofdays" class="form-control" />
+        </div>
+
+        <div class="flex">
+            <button id="btnsummit" type="submit" class="btn btn-outline-primary" style="width:120px" accesskey="s">Save</button>
+            <button id="btnrefresh" type="button" class="btn btn-outline-primary" style="width:120px" accesskey="r">Refresh</button>
+            <button id="btnDelete" type="button" class="btn btn-outline-primary" style="width:120px" accesskey="d">Delete</button>
+        </div>
+
+    </div>
+
+     <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+        <input type="text" id="searchBox" class="col-4 display: flex margin-right" placeholder="Search..." onkeyup="searchTable()" />
+    </div>
+
+    <div class="table-responsive">
+        <table id="myTable" class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th> Sno</th>
+                    <th> Leave Code</th>
+                    <th> Leave Type</th>
+                    <th> Paid/Unpaid</th>
+                    <th> No of Days</th>
+                    <th hidden> Masterid</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    var intRow = 1;
+                    var ispaid = "";
+                    foreach (var entry in Model)
+                    {
+                        if (@entry.isPaid == true)
+                            ispaid = "Paid Leave";
+                        else
+                            ispaid = "Un-Paid Leave";
+                        <tr>
+                            <td>@intRow</td>
+                            <td>@entry.sLeaveCode</td>
+                            <td>@entry.sLeaveType</td>
+                            <td>@ispaid</td>
+                            <td>@entry.iTotalDays</td>
+                            <td hidden>@entry.iMasterid</td>
+                        </tr>
+                        intRow = intRow + 1;
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>
+<script src="~/js/GenericFunction.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    var masterid = 0;
+    $(document).ready(function () {
+        debugger;
+        var iRowNo = 0;
+        var currentRow;
+        // var masterid = 0;
+        clearControl();
+    });
+
+    $('#btnrefresh').click(function (e) {
+        debugger;
+        clearControl();
+    });
+    $('#btnDelete').click(function (e) {
+        debugger;
+        $('#loader').show();
+        if (masterid == 0) {
+            alert('Select Row to Delete');
+            $('#loader').hide();
+            return;
+        }
+        if (confirm("Are you sure you want to delete this record?")) {
+            $.ajax
+                ({
+                    url: '@Url.Action("DeleteLeave", "Leave")',
+                    datatype: 'JSON',
+                    type: "post",
+                    cashe: true,
+                    data: { iMasterId: masterid },
+                    success: function (response) {
+                        debugger;
+                        if (response.status == true) {
+                            alert(response.message);
+                            $('#loader').hide();
+                            clearControl();
+                            location.reload(true);
+                        }
+                        else {
+                            $('#loader').hide();
+                            alert(response.message);
+                        }
+                    },
+                    error: function (e) {
+                        $('#loader').hide();
+                        debugger;
+                    }
+                })
+            }
+    });
+
+    $('#btnsummit').click(function (e) {
+        debugger;
+        let code =document.getElementById('code');
+        code.value= code.value.trim();
+        let type=document.getElementById('type');
+        type.value= type.value.trim();
+        type.setCustomValidity('');
+        code.setCustomValidity('');
+        if (!code.checkValidity()) {
+            code.setCustomValidity('Please enter a Leave Code');
+            code.reportValidity();
+            return;
+        }
+        if (!type.checkValidity()) {
+            type.setCustomValidity('Please enter a Leave Type');
+            type.reportValidity();
+            return;
+        }
+
+        $('#loader').show();
+        // if ($('#name').val() == '') {
+        //     alert('Provide Name');
+        //     $('#loader').hide();
+        //     $("#name").focus();
+        //     return;
+        // }
+        // if ($('#code').val() == '') {
+        //     alert('Provide Code');
+        //     $('#loader').hide();
+        //     $("#code").focus();
+        //     return;
+        // }
+
+
+        var leaveType = $('#type').val();
+        var leaveCode = $('#code').val();
+        
+        var isPaid = $('#ispaid').is(":checked");
+        var noOfDays = $('#noofdays').val();
+        var Masterid = masterid;//$('#masterid').val();
+
+        var requestdata=JSON.stringify({iMasterid: Masterid, sLeaveCode: leaveCode, 
+            sLeaveType: leaveType,isPaid:isPaid, iTotalDays: noOfDays});
+        $.ajax
+            ({
+                url: '@Url.Action("SaveLeave", "Leave")',
+                datatype: 'json',
+                type: "post",
+                contentType: "application/json; charset=utf-8",
+                cashe: true,
+                data: requestdata,
+                success: function (response) {
+                    debugger;
+
+                    if (response.status == true) {
+                        updateTable(response.data, response.isNew)
+                        clearControl();
+                        alert(response.message);
+                        $('#loader').hide();
+                    }
+                    else {
+                        $('#loader').hide();
+                        alert(response.message);
+                    }
+                },
+                error: function (e) {
+                    $('#loader').hide();
+                    debugger;
+                }
+            })
+    });
+
+    $('body').on('click', 'tr', function () {
+        debugger;
+        
+        var code = $(this).find("td").eq(1).html();
+        var type= $(this).find("td").eq(2).html();
+        var ispaid = $(this).find("td").eq(3).html();
+        var noofdays = $(this).find("td").eq(4).html();
+        masterid = $(this).find("td").eq(5).html();
+
+
+        $('#code').val(code);
+        $('#type').val(type);
+        //$('#ispaid').val(ispaid);
+        if (ispaid == "Paid Leave")
+            $("#ispaid").prop("checked", true);
+        else
+            $("#ispaid").prop("checked", false);
+        $('#noofdays').val(noofdays);
+       
+
+        iRowNo = $(this).closest("tr")[0].rowIndex;
+        currentRow = $(this).closest("tr");
+
+    });
+    function clearControl() {
+        $('#code').val('');
+        $('#type').val('');
+        $('#ispaid').val('');
+        $('#noofdays').val('');
+        
+        masterid = 0;
+        $("#code").focus();
+    }
+    function updateTable(res, isNew) {
+        debugger;
+        if (isNew == 1) {
+            //get table total rows
+            var rowCount = $('#myTable tr').length;
+
+            //$('#myTable tbody').empty()
+            for (let i = 0; i < res.length; i++) {
+                var ispaid='';
+                if(res[i].isPaid==true)
+                    isactive="Paid Leave";
+                else
+                    isactive="Un-Paid Leave";
+
+                $('#myTable').append('<tr>' +
+                    '<td>' + (rowCount) + '</td>' +
+                    '<td >' + res[i].sLeaveCode + '</td > ' +
+                    '<td >' + res[i].sLeaveType + '</td > ' +
+                    '<td >' + isactive + '</td > ' +
+                    '<td >' + res[i].iTotalDays + '</td > ' +
+                    '<td style="display:none;">' + res[i].iMasterid + '</td > ' +
+                    '</tr>');
+            }
+        }
+        else {
+
+            $("#myTable").val(currentRow.find("td:eq(1)").text(res[0].sLeaveCode));
+            $("#myTable").val(currentRow.find("td:eq(2)").text(res[0].sLeaveType));
+            //$("#myTable").val(currentRow.find("td:eq(3)").text(res[0].isPaid));
+             if(res[0].isPaid==true)
+                $("#myTable").val(currentRow.find("td:eq(3)").text("Paid Leave"));
+            else
+                $("#myTable").val(currentRow.find("td:eq(3)").text("Un-Paid Leave"));
+
+            $("#myTable").val(currentRow.find("td:eq(4)").text(res[0].iTotalDays));
+            $("#myTable").val(currentRow.find("td:eq(5)").text(res[0].iMasterid));
+
+        }
+    }
+</script>

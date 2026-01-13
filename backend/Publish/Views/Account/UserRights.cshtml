@@ -1,0 +1,185 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title</title>
+
+    <link rel="stylesheet" href="~/css/Style.css">
+    <style>
+        .flex {
+            display: flex;
+            gap: 16px;
+        }
+
+        body {
+            background-color: #cccccc;
+        }
+
+        input:invalid {
+            border: 2px solid red;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2 class="text-center">
+            User Rights
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+                <path fill="#2196F3" d="M12 2a5 5 0 0 1 5 5c0 2.76-2.24 5-5 5S7 9.76 7 7a5 5 0 0 1 5-5z" />
+                <path fill="#64B5F6" d="M12 14c3.31 0 6 2.69 6 6v1H6v-1c0-3.31 2.69-6 6-6z" />
+                <path fill="#1976D2" d="M21.03 8.61l-2.13-.71a1 1 0 0 0-.64 0l-2.13.71a1 1 0 0 0-.69.95c0 3.14 1.91 5.74 4.58 6.73a.99.99 0 0 0 .72 0c2.67-.99 4.58-3.59 4.58-6.73 0-.43-.28-.81-.69-.95z" />
+            </svg>
+        </h2>
+        <div asp-validation-summary="All" class="text-bg-danger"></div>
+
+
+        <div class="form-group mb-3">
+            <label for="role">Role:</label>
+            <select id="role" name="role" class="form-control" onchange="loadRightsForRole(this.value)">
+                <option value="">Select</option>
+                @foreach (var item in ViewBag.Roles)
+                {
+                    <option value="@item.Value">@item.Value</option>
+                }
+            </select>
+        </div>
+
+        <div class="form-group mb-3">
+            <label>User Rights:</label>
+            <!-- Select All checkbox -->
+            <div class="form-check mb-2">
+                <input type="checkbox" class="form-check-input right-checkbox" id="selectAll" onclick="toggleSelectAll(this)">
+                <label class="form-check-label" for="selectAll"><strong>Select All</strong></label>
+            </div>
+            <div style="border: 1px solid #ccc; padding: 10px; max-height: 200px; overflow-y: auto; background-color: #fff;">
+                @foreach (var right in ViewBag.MenuItems)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input right-checkbox" type="checkbox" name="rights" id="right_@right" value="@right" />
+                        <label class="form-check-label" for="right_@right">@right</label>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="flex">
+            <button id="btnSave" type="button" class="btn btn-outline-primary" style="width:120px" accesskey="r">
+                Save
+                <svg width="25" height="25" color="green">
+                    <use xlink:href="#icon-save"></use>
+                </svg>
+            </button>
+            <button id="btnrefresh" type="button" class="btn btn-outline-primary" style="width:120px" accesskey="r">
+                Refresh
+                <svg width="25" height="25">
+                    <use xlink:href="#icon-refresh"></use>
+                </svg>
+            </button>
+            <button id="btnDelete" type="button" class="btn btn-outline-primary" style="width:120px" accesskey="d">
+                Delete
+                <svg width="25" height="25" color="red">
+                    <use xlink:href="#icon-delete"></use>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+</body>
+</html>
+
+<script>
+
+    document.getElementById("btnSave").addEventListener("click", function () {
+        debugger;
+        const selectedRights = Array.from(document.querySelectorAll('.right-checkbox:checked')).map(cb => cb.value);
+        const role = document.getElementById("role").value;
+        if (role === "") {
+            alert("Please select a role.");
+            return;
+        }
+        if(selectedRights.length === 0) {
+            alert("Please select at least one right.");
+            return;
+        }
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("SaveUserRights", "UserRights")',
+            data: { role: role, rights: selectedRights },
+            success: function (response) {
+                alert(response.message);
+            },
+            error: function (error) {
+                alert("Error saving rights." + error);
+            }
+        });
+    });
+
+
+
+     document.getElementById("btnrefresh").addEventListener("click", function () {
+         const role = document.getElementById("role").value;
+
+         document.getElementById("role").value = "";
+         $('.right-checkbox').prop('checked', false);
+     });
+
+     document.getElementById("btnDelete").addEventListener("click", function () {
+        const role = document.getElementById("role").value;
+        if (role === "") {
+            alert("Please select a role.");
+            return;
+        }
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("DeleteUserRights", "UserRights")',
+            data: { role: role },
+            success: function (response) {
+                alert(response.message);
+                $('.right-checkbox').prop('checked', false);
+            },
+            error: function (error) {
+                alert("Error deleting rights." + error);
+            }
+        });
+     });
+
+
+    function loadRightsForRole(role) {
+        if (!role) return;
+
+        $.ajax({
+            url: '@Url.Action("GetRightsByRole", "UserRights")',
+            type: 'GET',
+            data: { role: role },
+            success: function (data) {
+                // Uncheck all first
+                $('.right-checkbox').prop('checked', false);
+
+                // Check items that match the returned list
+                data.forEach(function (right) {
+                    $('#right_' + right).prop('checked', true);
+                });
+
+                // Set Select All if all are checked
+                const all = $('.right-checkbox');
+                const checked = $('.right-checkbox:checked');
+                $('#selectAll').prop('checked', all.length === checked.length);
+            },
+            error: function () {
+                alert('Error loading role rights');
+            }
+        });
+    }
+</script>
+
+<script>
+
+    function toggleSelectAll(source) {
+        const checkboxes = document.querySelectorAll('.right-checkbox');
+        checkboxes.forEach(cb => cb.checked = source.checked);
+    }
+
+</script>

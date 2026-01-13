@@ -1,0 +1,343 @@
+﻿@model EMSSolution.Models.Expenses
+
+@{
+    ViewBag.Title = "Add Expense";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/Style.css">
+</head>
+<body>
+
+
+    <div class="container">
+        <h2 class="text-center d-flex justify-content-center align-items-center gap-2">
+            Add Expense
+        </h2>
+
+        <div class="form-group">
+            <label for="iEmployee">Employee Name</label>
+            <select id="iEmployee" name="iEmployee" class="form-control">
+                <option value="">-- Select Employee --</option>
+                @foreach (var emp in ViewBag.Employees)
+                {
+                    <option value="@emp.iMasterid">@emp.sEmployeeName</option>
+                }
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="CreatedDate">Date</label>
+            <input id="CreatedDate" name="CreatedDate" type="date" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label for="Description">Description</label>
+            <input id="Description" name="Description" type="text" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label for="Amount">Amount</label>
+            <input id="Amount" name="Amount" type="number" class="form-control" />
+        </div>
+
+        @* Add Invoice *@
+        <div style="width: 100px; height: 100px; border: 2px dashed #ccc; display: flex; justify-content: center; align-items: center; overflow: hidden; margin: 20px auto;">
+            <img id="photoPreview" src="#" alt="Photo Preview" style="display:none; max-width:100px; max-height:100px;" />
+        </div>
+
+        <input type="file" id="photoInput" name="photo" accept="image/*" style="display: none;">
+        <div class="text-center mb-3">
+            <button id="selectButton" class="btn btn-primary">Select Receipt</button>
+            <button type="button" id="removePhotoButton" class="btn btn-danger ms-2">Remove Receipt</button>
+        </div>
+        <span id="fileNameDisplay"></span>
+        @* Add Invoice *@
+
+        </br>
+        <div class="flex">
+            <button type="button" name="btnSave" id="btnSave" class="btn btn-primary">Submit</button>
+            <button id="btnDelete" type="button" class="btn btn-outline-primary" style="width:120px" accesskey="d">Delete</button>
+            <button id="btnrefresh" type="button" class="btn btn-outline-primary" style="width:155px" accesskey="r">Refresh</button>
+        </div>
+
+        <div class="table-responsive">
+            <table id="myTable" class="table table-hover table-bordered">
+                <thead>
+                    <tr>
+                        <th>Sno</th>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th hidden>Id</th>
+                        <th hidden>Image</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var intRow = 1;
+
+                        foreach (var entry in ViewBag.Expenses)
+                        {
+
+                            <tr>
+                                <td>@intRow</td>
+                                <td>@entry.ExpenseDate.ToString("dd-MM-yyyy")</td>
+                                <td>@entry.Description</td>
+                                <td>@entry.Amount</td>
+
+                                <td hidden>@entry.id</td>
+                                <td hidden>@entry.sImage</td>
+                            </tr>
+                            intRow = intRow + 1;
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+
+
+    </div>
+</body>
+</html>
+
+@* <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> *@
+<script src="/js/GenericFunction.js"></script>
+
+<script>
+     $(document).ready(function () {
+        $('#iEmployee').select2({
+            placeholder: "Select employee",
+            allowClear: true
+        });
+        focusonselectcontrol("#iEmployee");
+        $("#iEmployee").focus();
+
+
+    });
+    var masterid = 0;
+    var id=0;
+    var today = new Date().toISOString().split('T')[0];
+    $('#CreatedDate').val(today);
+
+
+    $('#btnSave').click(function (e) {
+        debugger;
+        let desc =document.getElementById('Description');
+        desc.value=desc.value.trim();
+        if (!desc.checkValidity()) {
+            desc.setCustomValidity('Please enter Description');
+            desc.reportValidity();
+            return;
+        }
+        var employee = $('#iEmployee').val();
+        if (employee === "") {
+            alert("Please select an employee.");
+            return;
+        }
+        var ExpenseDate = $('#CreatedDate').val();
+        var createdDate = $('#CreatedDate').val();
+        var description = $('#Description').val();
+        var amount = $('#Amount').val();
+        if (amount === "" || isNaN(amount) || parseFloat(amount) <= 0) {
+            alert("Please enter a valid amount.");
+            return;
+        }
+
+        var imgdata= getImageBase64();
+        var Expenses = JSON.stringify({
+            id:id,
+            iEmployee: employee,
+            CreatedDate: createdDate,
+            Description: description,
+            ExpenseDate:ExpenseDate,
+            Amount: parseFloat(amount),
+            sImage:imgdata
+        });
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("AddExpense", "Expense")',
+            data: Expenses,
+            contentType: 'application/json',
+            success: function (response) {
+                if (response.success) {
+                    alert("Expense added successfully.");
+                    updateTable(response.data, response.isNew)
+                    clearControl();
+                    $('#loader').hide();
+
+                } else {
+                    alert("Error adding expense: " + response.message);
+                }
+            },
+            error: function (xhr, status, error) {
+                alert("An error occurred while adding the expense: " + error);
+            }
+        });
+    });
+
+
+    $('body').on('click', 'tr', function () {
+        debugger;
+        var date = $(this).find("td").eq(1).html();
+        var description= $(this).find("td").eq(2).html();
+        var amount = $(this).find("td").eq(3).html();
+
+        masterid = $(this).find("td").eq(0).html();
+        id= $(this).find("td").eq(4).html();
+
+
+        $('#iEmployee').val(masterid).trigger('change');
+
+        var parts = date.split(/[-\/]/);
+        var formattedDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+
+        $('#CreatedDate').val(formattedDate);
+
+
+        $('#Description').val(description);
+        $('#Amount').val(amount);
+
+        $('#photoPreview').attr('src', $(this).find("td").eq(5).html())
+        $('#photoPreview').show();
+
+
+        iRowNo = $(this).closest("tr")[0].rowIndex;
+        currentRow = $(this).closest("tr");
+
+    });
+
+     function clearControl() {
+        $('#CreatedDate').val(today);
+        $('#Description').val('');
+        $('#Amount').val('');
+        $('#photoPreview').attr('src', '#').hide();
+        $('#photoInput').val('');
+        $("#CreatedDate").focus();
+        masterid = 0;
+        id = 0;
+    }
+
+
+     function updateTable(res, isNew) {
+        debugger;
+        if (isNew == 1) {
+            //get table total rows
+            var rowCount = $('#myTable tr').length;
+
+            //$('#myTable tbody').empty()
+            for (let i = 0; i < res.length; i++)
+            {
+                var date=res[i].expenseDate.split('T')[0];
+                var parts = date.split(/[-\/]/);
+                var formattedDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+
+
+                $('#myTable').append('<tr>' +
+                    '<td>' + (rowCount) + '</td>' +
+                    '<td >' + formattedDate + '</td > ' +
+                    '<td >' + res[i].description + '</td > ' +
+                    '<td >' + res[i].amount + '</td > ' +
+                    '<td style="display:none;">' + res[i].id + '</td > ' +
+                    '<td style="display:none;">' + res[i].sImage + '</td > ' +
+                    '</tr>');
+            }
+        }
+        else {
+            var date=res[0].expenseDate.split('T')[0];
+            var parts = date.split(/[-\/]/);
+            var formattedDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+
+
+            //$("#myTable").val(currentRow.find("td:eq(1)").text(res[0].expenseDate));
+            $("#myTable").val(currentRow.find("td:eq(1)").text(formattedDate));
+            $("#myTable").val(currentRow.find("td:eq(2)").text(res[0].description));
+            $("#myTable").val(currentRow.find("td:eq(3)").text(res[0].amount));
+            $("#myTable").val(currentRow.find("td:eq(4)").text(res[0].id));
+            $("#myTable").val(currentRow.find("td:eq(5)").text(res[0].sImage));
+
+        }
+    }
+
+</script>
+
+<script>
+    $('#removePhotoButton').on('click', function () {
+        $('#photoPreview').attr('src', '#').hide();
+        $('#photoInput').val('');
+    });
+
+      $('#selectButton').on('click', function() {
+        debugger;
+        $('#photoInput').click(); // trigger file input click
+    });
+
+     $('#photoInput').on('change', function() {
+        debugger
+        const file = this.files[0];
+        if (file) {
+            const fileName = file.name;
+            //$('#fileNameDisplay').text(fileName); // display file name somewhere, if you want
+            const imageUrl = URL.createObjectURL(file);
+            $('#photoPreview').attr('src', imageUrl).show();
+        }
+    });
+
+      $('#btnrefresh').click(function (e) {
+        debugger;
+        clearControl();
+    });
+
+     function getImageBase64() {
+        const img = document.getElementById('photoPreview');
+
+        // Check if the image has a valid source
+        if (img.src &&
+            (img.src !== "#" && img.getAttribute("src")!== "#" && img.getAttribute("src")!=="data:,")
+            && img.complete) {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+
+            // Convert canvas image to Base64
+            const base64String = canvas.toDataURL('image/png'); // can use 'image/jpeg' too
+            console.log(base64String);
+            return base64String;
+        } else {
+            console.log("No valid image loaded yet.");
+            return null;
+        }
+    }
+
+
+</script>
+<script>
+    function previewPhoto() {
+         debugger;
+         var fileInput = document.getElementById('photoInput');
+         var preview = document.getElementById('photoPreview');
+
+         if (fileInput.files && fileInput.files[0]) {
+         var reader = new FileReader();
+
+         reader.onload = function (e) {
+         preview.src = e.target.result;
+         preview.style.display = 'block';
+         };
+
+         reader.readAsDataURL(fileInput.files[0]);
+         } else {
+         preview.src = "#";
+         preview.style.display = 'none';
+         }
+     }
+</script>
+

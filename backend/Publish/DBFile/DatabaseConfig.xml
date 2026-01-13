@@ -1,0 +1,24 @@
+<?xml version="1.0" standalone="yes"?>
+<DatabaseConfig>
+  <Database Active="1" Type="SQLServer">
+    <Data_Source>02-IT-015\SQLEXPRESS2022</Data_Source>
+    <Initial_Catalog>EmpAttendance</Initial_Catalog>
+    <User_Id>sa</User_Id>
+    <Password>sfon</Password>
+  </Database>
+  <Database Active="0" Type="MySql">
+    <Server />
+    <Uid />
+    <Pwd />
+    <Database />
+  </Database>
+  <Database Active="0" Type="Oracle">
+    <Data_Source />
+    <User_Id />
+    <Password />
+  </Database>
+  <Database Active="0" Type="PostgreSQL">
+    <User_Name />
+    <Database />
+  </Database>
+</DatabaseConfig>

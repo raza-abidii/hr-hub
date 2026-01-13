@@ -1,0 +1,15 @@
+select distinct day(logDateTime) day,month(logdatetime) mon,
+e.sEmployeeName,e.sEmployeeCode ,c.sName CatName,d.sName DeptName
+,desig.sName designation,es.IPAddress,LogDate
+,(select min(es1.logdatetime) from tblEmployeeTimeSheet es1 where 
+es1.EmpId=e.sEmployeeCode and es1.LogDate=es.LogDate
+group by es1.EmpId,es1.LogDate) InTime
+,
+(select max(es1.logdatetime) from tblEmployeeTimeSheet es1 where 
+es1.EmpId=e.sEmployeeCode and es1.LogDate=es.LogDate
+group by es1.EmpId,es1.LogDate) OutTime
+from tblEmployee e join tblcategory c on c.iMasterId=e.iCategory
+join tblDepartment d on d.iMasterid=e.iDepartment
+join tblDesignation desig on desig.iMasterid=e.iDesignation
+join tblEmployeeTimeSheet es on es.EmpId=e.sEmployeeCode
+where IPAddress='192.168.16.200' 

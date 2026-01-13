@@ -1,0 +1,173 @@
+﻿@{
+    var months = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.MonthNames;
+}
+@{
+    // ViewBag.Employees is assumed to be a List of objects with "Name" and "Code"
+    var employeesJson = Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Employees);
+}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="~/css/Style.css">
+    <style>
+        .flex {
+            display: flex;
+            gap: 16px;
+        }
+        input:invalid {
+            border: 2px solid red;
+        }
+
+    </style>
+
+</head>
+<body >
+
+    <div class="container">
+
+        <h4 class="text-center d-flex justify-content-center align-items-center gap-2">
+            
+            Manual Timesheet Entry
+            <svg width="25" height="25" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="10" y="8" width="44" height="48" rx="3" fill="#FFD166" stroke="#073B4C" stroke-width="2" />
+                <rect x="24" y="4" width="16" height="8" rx="2" fill="#FFD166" stroke="#073B4C" stroke-width="2" />
+                <line x1="18" y1="20" x2="46" y2="20" stroke="#073B4C" stroke-width="2" />
+                <line x1="18" y1="26" x2="42" y2="26" stroke="#073B4C" stroke-width="2" />
+                <line x1="18" y1="32" x2="38" y2="32" stroke="#073B4C" stroke-width="2" />
+            </svg>
+        </h4>
+        <div class="form-group">
+            <label for="employee">Employee Name</label>
+            <select id="employee" name="employee" class="form-control">
+                <option value="">-- Select Employee --</option>
+                @foreach (var emp in ViewBag.Employees)
+                {
+                    <option value="@emp.iMasterid">@emp.sEmployeeName</option>
+                }
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="Date">Date</label>
+            <input id="Date" name="Date" type="date" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label for="InTime">In-Time</label>
+            <input id="InTime" name="InTime" type="time" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label for="OutTime">Out-Time</label>
+            <input id="OutTime" name="OutTime" type="time" class="form-control" />
+        </div>
+        <br />
+        @* <button type="submit" id="btnsummit" class="btn btn-outline-primary">
+            Submit
+            <svg width="25" height="25" color="green">
+                <use xlink:href="#icon-save"></use>
+            </svg>
+        </button> *@
+        <button type="submit" id="btnsummit" class="btn btn-outline-primary d-flex align-items-center justify-content-between gap-2">
+            Save
+            <svg width="20" height="20" style="vertical-align: middle;" fill="green">
+                <use xlink:href="#icon-save"></use>
+            </svg>
+        </button>
+    </div>
+
+</body>
+</html>
+
+@* <script src="/js/GenericFunction.js"></script> *@
+<script>
+    $(document).ready(function () {
+        $('#employee').select2({
+            placeholder: "Select employee",
+            allowClear: true
+        });
+        focusonselectcontrol("#employee");
+        $("#employee").focus();
+    });
+
+    $('#btnsummit').click(function (e) {
+        debugger;
+        var employee = $("#employee").val();
+        var date = $("#Date").val();
+        var inTime = $("#InTime").val();
+        var outTime = $("#OutTime").val();
+        if(employee == "" || date == "" || inTime == "" || outTime == "") {
+            alert("Please fill all fields");
+            return;
+        }
+        var data = {
+            employee: employee,
+            date: date,
+            inTime: inTime,
+            outTime: outTime
+        };
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("EmployeeTimeSheetUpdate", "Employee")',
+            data: data,
+            dataType: "json",
+            success: function (response) {
+                if (response.success="success") {
+                    alert("Data saved successfully");
+                } else {
+                    alert("Error saving data:" + response.message);
+                }
+            },
+            error: function (xhr, status, error) {
+                alert("An error occurred: " + error);
+            }
+        });
+    });
+
+
+</script>
+
+<script>
+
+    // Parse the Razor-passed employees into JavaScript
+    const employees = @Html.Raw(employeesJson);
+    const select = document.getElementById("employee");
+
+    let showCodeOnly = false;
+
+    function renderOptions() {
+        const selectedValue = select.value;
+        select.innerHTML = "";
+
+        employees.forEach(emp => {
+            const option = document.createElement("option");
+            option.value = emp.iMasterid;
+            option.text = showCodeOnly ? emp.sEmployeeCode : emp.sEmployeeName;
+            select.appendChild(option);
+        });
+
+        select.value = selectedValue;
+    }
+
+    renderOptions();
+
+    document.addEventListener("keydown", function (e) {
+        // if (e.altKey && e.key === "F2") {
+        if (e.key === "F2") {
+            showCodeOnly = !showCodeOnly;
+            renderOptions();
+        }
+    });
+
+</script>
+<script>
+    const dateInput = document.getElementById('Date');
+
+    dateInput.addEventListener('focus', () => {
+        if (typeof dateInput.showPicker === 'function') {
+            dateInput.showPicker(); // Opens the native date picker
+        }
+    });
+</script>
