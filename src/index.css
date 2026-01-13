@@ -1,0 +1,214 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 180 20% 99%;
+    --foreground: 200 25% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 200 25% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 200 25% 10%;
+
+    --primary: 174 72% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 180 30% 96%;
+    --secondary-foreground: 200 25% 20%;
+
+    --muted: 180 15% 95%;
+    --muted-foreground: 200 15% 45%;
+
+    --accent: 185 60% 94%;
+    --accent-foreground: 174 72% 30%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 72% 40%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --info: 210 90% 55%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 180 20% 90%;
+    --input: 180 20% 90%;
+    --ring: 174 72% 40%;
+
+    --radius: 0.75rem;
+
+    /* Custom HRMS tokens */
+    --gradient-primary: linear-gradient(135deg, hsl(174 72% 40%) 0%, hsl(185 70% 45%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(180 30% 96%) 0%, hsl(185 40% 92%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(174 72% 40%) 0%, hsl(185 70% 50%) 100%);
+    
+    --shadow-sm: 0 1px 2px 0 hsl(200 25% 10% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(200 25% 10% / 0.08), 0 2px 4px -2px hsl(200 25% 10% / 0.05);
+    --shadow-lg: 0 10px 15px -3px hsl(200 25% 10% / 0.1), 0 4px 6px -4px hsl(200 25% 10% / 0.1);
+    --shadow-xl: 0 20px 25px -5px hsl(200 25% 10% / 0.1), 0 8px 10px -6px hsl(200 25% 10% / 0.1);
+    --shadow-card: 0 1px 3px hsl(200 25% 10% / 0.08), 0 1px 2px -1px hsl(200 25% 10% / 0.08);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 200 20% 25%;
+    --sidebar-primary: 174 72% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 180 30% 95%;
+    --sidebar-accent-foreground: 200 20% 25%;
+    --sidebar-border: 180 20% 90%;
+    --sidebar-ring: 174 72% 40%;
+  }
+
+  .dark {
+    --background: 200 30% 8%;
+    --foreground: 180 20% 98%;
+
+    --card: 200 30% 10%;
+    --card-foreground: 180 20% 98%;
+
+    --popover: 200 30% 10%;
+    --popover-foreground: 180 20% 98%;
+
+    --primary: 174 65% 50%;
+    --primary-foreground: 200 30% 8%;
+
+    --secondary: 200 25% 15%;
+    --secondary-foreground: 180 20% 98%;
+
+    --muted: 200 25% 15%;
+    --muted-foreground: 180 15% 60%;
+
+    --accent: 200 25% 18%;
+    --accent-foreground: 174 65% 60%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 65% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 85% 55%;
+    --warning-foreground: 0 0% 100%;
+
+    --info: 210 85% 60%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 200 25% 18%;
+    --input: 200 25% 18%;
+    --ring: 174 65% 50%;
+
+    --sidebar-background: 200 30% 6%;
+    --sidebar-foreground: 180 15% 85%;
+    --sidebar-primary: 174 65% 50%;
+    --sidebar-primary-foreground: 200 30% 8%;
+    --sidebar-accent: 200 25% 12%;
+    --sidebar-accent-foreground: 180 15% 85%;
+    --sidebar-border: 200 25% 15%;
+    --sidebar-ring: 174 65% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .gradient-card {
+    background: var(--gradient-card);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .shadow-elevated {
+    box-shadow: var(--shadow-lg);
+  }
+
+  .status-present {
+    @apply bg-success/10 text-success;
+  }
+
+  .status-absent {
+    @apply bg-destructive/10 text-destructive;
+  }
+
+  .status-pending {
+    @apply bg-warning/10 text-warning;
+  }
+
+  .status-approved {
+    @apply bg-success/10 text-success;
+  }
+
+  .status-rejected {
+    @apply bg-destructive/10 text-destructive;
+  }
+
+  .hrms-card {
+    @apply bg-card rounded-xl border border-border shadow-card transition-all duration-200 hover:shadow-elevated;
+  }
+
+  .hrms-input {
+    @apply flex h-11 w-full rounded-lg border border-input bg-background px-4 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+}
